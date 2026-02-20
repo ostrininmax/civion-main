@@ -42,7 +42,7 @@ export function CivicCardPageClient({
   return (
     <Section title={tt('civic.page_title')} action={tt('civic.page_action')}>
       <div className="civic-identity-grid">
-        <article className="civic-identity-card">
+        <article className="civic-identity-card" data-tour="civic-card-identity">
           <div className="civic-photo-placeholder" aria-hidden>
             <span>{name.slice(0, 1).toUpperCase()}</span>
           </div>

@@ -16,8 +16,55 @@ type RectLike = {
   height: number;
 };
 
+type ViewportMetrics = {
+  width: number;
+  height: number;
+  offsetTop: number;
+  offsetLeft: number;
+  bottomInset: number;
+};
+
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
+}
+
+function getViewportMetrics(): ViewportMetrics {
+  if (typeof window === 'undefined') {
+    return {
+      width: 1440,
+      height: 900,
+      offsetTop: 0,
+      offsetLeft: 0,
+      bottomInset: 0
+    };
+  }
+
+  const vv = window.visualViewport;
+  if (!vv) {
+    return {
+      width: window.innerWidth,
+      height: window.innerHeight,
+      offsetTop: 0,
+      offsetLeft: 0,
+      bottomInset: 0
+    };
+  }
+
+  return {
+    width: vv.width,
+    height: vv.height,
+    offsetTop: vv.offsetTop,
+    offsetLeft: vv.offsetLeft,
+    bottomInset: Math.max(0, window.innerHeight - (vv.offsetTop + vv.height))
+  };
+}
+
+function isRenderableTarget(element: HTMLElement | null): element is HTMLElement {
+  if (!element) return false;
+  const style = window.getComputedStyle(element);
+  if (style.visibility === 'hidden' || style.display === 'none') return false;
+  const rect = element.getBoundingClientRect();
+  return rect.width >= 8 && rect.height >= 8;
 }
 
 export function GuidedTourOverlay() {
@@ -121,14 +168,14 @@ export function GuidedTourOverlay() {
     const locateTarget = () => {
       if (cancelled) return;
       const element = document.querySelector(step.target ?? '') as HTMLElement | null;
-      if (element) {
+      if (isRenderableTarget(element)) {
         attachTarget(element);
         return;
       }
 
       attempts += 1;
-      if (attempts < 45) {
-        timer = setTimeout(locateTarget, 90);
+      if (attempts < 60) {
+        timer = setTimeout(locateTarget, 110);
       } else {
         setTargetRect(null);
         setTargetMissing(true);
@@ -146,44 +193,57 @@ export function GuidedTourOverlay() {
   }, [pathname, runtime.tour.active, step?.id, step?.target]);
 
   const progressLabel = `${stepIndex + 1}/${steps.length}`;
-  const viewportHeight = typeof window === 'undefined' ? 900 : window.innerHeight;
-  const viewportWidth = typeof window === 'undefined' ? 1440 : window.innerWidth;
+  const viewport = getViewportMetrics();
+  const viewportHeight = viewport.height;
+  const viewportWidth = viewport.width;
   const mobileViewport = viewportWidth <= 900;
   const spotlightRect = useMemo(() => {
     if (!targetRect) return null;
 
     if (!mobileViewport) {
       return {
-        top: Math.max(8, targetRect.top - 8),
-        left: Math.max(8, targetRect.left - 8),
+        top: Math.max(viewport.offsetTop + 8, targetRect.top - 8),
+        left: Math.max(viewport.offsetLeft + 8, targetRect.left - 8),
         width: targetRect.width + 16,
         height: targetRect.height + 16
       };
     }
 
     const width = Math.min(viewportWidth - 18, targetRect.width + 16);
-    const height = Math.min(Math.round(viewportHeight * 0.33), targetRect.height + 16);
+    const height = Math.min(Math.round(viewportHeight * 0.24), targetRect.height + 16);
+    const minTop = viewport.offsetTop + 8;
+    const maxTop = viewport.offsetTop + viewportHeight - height - 84;
+    const minLeft = viewport.offsetLeft + 8;
+    const maxLeft = viewport.offsetLeft + viewportWidth - width - 8;
     return {
-      top: clamp(targetRect.top, 8, Math.max(8, viewportHeight - height - 84)),
-      left: clamp(targetRect.left + (targetRect.width + 16 - width) / 2, 8, Math.max(8, viewportWidth - width - 8)),
+      top: clamp(targetRect.top, minTop, Math.max(minTop, maxTop)),
+      left: clamp(targetRect.left + (targetRect.width + 16 - width) / 2, minLeft, Math.max(minLeft, maxLeft)),
       width,
       height
     };
-  }, [mobileViewport, targetRect, viewportHeight, viewportWidth]);
+  }, [mobileViewport, targetRect, viewport.offsetLeft, viewport.offsetTop, viewportHeight, viewportWidth]);
   const popoverTop = mobileViewport
     ? targetRect
-      ? targetRect.top < viewportHeight * 0.45
-        ? clamp(viewportHeight - 240 - 104, 72, Math.max(viewportHeight - 260, 72))
-        : 72
-      : clamp(viewportHeight - 240 - 104, 72, Math.max(viewportHeight - 260, 72))
+      ? targetRect.top + targetRect.height / 2 < viewport.offsetTop + viewportHeight * 0.52
+        ? clamp(
+            viewport.offsetTop + viewportHeight - 212 - (viewport.bottomInset + 82),
+            viewport.offsetTop + 12,
+            Math.max(viewport.offsetTop + 12, viewport.offsetTop + viewportHeight - 220)
+          )
+        : viewport.offsetTop + 12
+      : clamp(
+          viewport.offsetTop + viewportHeight - 212 - (viewport.bottomInset + 82),
+          viewport.offsetTop + 12,
+          Math.max(viewport.offsetTop + 12, viewport.offsetTop + viewportHeight - 220)
+        )
     : targetRect
-      ? clamp(targetRect.top + targetRect.height + 14, 16, Math.max(viewportHeight - 220, 16))
-      : Math.max(viewportHeight / 2 - 120, 20);
+      ? clamp(targetRect.top + targetRect.height + 14, viewport.offsetTop + 16, Math.max(viewport.offsetTop + viewportHeight - 220, 16))
+      : Math.max(viewport.offsetTop + viewportHeight / 2 - 120, viewport.offsetTop + 20);
   const popoverLeft = mobileViewport
-    ? 10
+    ? viewport.offsetLeft + 10
     : targetRect
-      ? clamp(targetRect.left, 14, Math.max(viewportWidth - 420, 14))
-      : Math.max(viewportWidth / 2 - 200, 12);
+      ? clamp(targetRect.left, viewport.offsetLeft + 14, Math.max(viewport.offsetLeft + viewportWidth - 420, viewport.offsetLeft + 14))
+      : Math.max(viewport.offsetLeft + viewportWidth / 2 - 200, viewport.offsetLeft + 12);
 
   if (!runtime.tour.active || !scenario || !step) return null;
 
@@ -220,7 +280,7 @@ export function GuidedTourOverlay() {
       <div className="demo-tour-popover" style={{ top: popoverTop, left: popoverLeft }}>
         <div className="demo-tour-head">
           <p className="mono">{progressLabel}</p>
-          <button type="button" className="wallet-action wallet-action-soft" onClick={() => stopGuidedTour()}>
+          <button type="button" className="wallet-action wallet-action-soft demo-tour-btn-skip" onClick={() => stopGuidedTour()}>
             {t('demo.tour.skip')}
           </button>
         </div>
@@ -230,13 +290,18 @@ export function GuidedTourOverlay() {
         {targetMissing ? <p className="demo-tour-warning">{t('demo.tour.target_missing')}</p> : null}
 
         <div className="demo-tour-actions">
-          <button type="button" className="wallet-action wallet-action-soft" onClick={handleBack} disabled={stepIndex === 0}>
+          <button
+            type="button"
+            className="wallet-action wallet-action-soft demo-tour-btn-back"
+            onClick={handleBack}
+            disabled={stepIndex === 0}
+          >
             {t('common.back')}
           </button>
-          <button type="button" className="wallet-action" onClick={() => startGuidedTour('guided-tour', 0)}>
+          <button type="button" className="wallet-action demo-tour-btn-restart" onClick={() => startGuidedTour('guided-tour', 0)}>
             {t('demo.tour.restart')}
           </button>
-          <button type="button" className="wallet-action wallet-action-primary" onClick={handleNext}>
+          <button type="button" className="wallet-action wallet-action-primary demo-tour-btn-next" onClick={handleNext}>
             {stepIndex >= steps.length - 1 ? t('demo.tour.finish') : t('demo.tour.next')}
           </button>
         </div>

@@ -231,7 +231,7 @@ export function CivicCardTokenPanel({
           </label>
         </div>
 
-        <div className={`civic-qr-frame ${isLocked ? 'civic-qr-frame-disabled' : ''}`} aria-live="polite">
+        <div className={`civic-qr-frame ${isLocked ? 'civic-qr-frame-disabled' : ''}`} aria-live="polite" data-tour="civic-qr-frame">
           {isLocked ? (
             <div className="civic-qr-loading">{tt('civic.qr_disabled')}</div>
           ) : qrDataUrl ? (

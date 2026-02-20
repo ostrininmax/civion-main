@@ -193,7 +193,7 @@ export function DocumentDetailsDrawer({
       }}
     >
       <aside className="wallet-drawer-panel" role="dialog" aria-modal="true" aria-labelledby="wallet-drawer-title" ref={drawerRef}>
-        <div className="wallet-drawer-head">
+        <div className="wallet-drawer-head" data-tour="drawer-document-head">
           <div>
             <h3 id="wallet-drawer-title">{selectedDocument.title}</h3>
             <StatusPill label={selectedDocument.statusLabel} tone={selectedDocument.statusTone} />
@@ -288,7 +288,7 @@ export function DocumentDetailsDrawer({
         </div>
 
         <div className="wallet-drawer-section" data-tour="drawer-share-controls">
-          <h4>{t(state.locale, 'wallet.drawer_sharing_controls')}</h4>
+          <h4 data-tour="drawer-share-controls-title">{t(state.locale, 'wallet.drawer_sharing_controls')}</h4>
           {isLocked ? <p className="civic-verify-reason">{t(state.locale, 'authority.invalid_locked')}</p> : null}
           <label className="wallet-query-label" htmlFor="share-duration">
             {t(state.locale, 'wallet.drawer_share_duration')}
