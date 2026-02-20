@@ -2931,6 +2931,7 @@ a,
     right: max(12px, env(safe-area-inset-right));
     bottom: calc(10px + env(safe-area-inset-bottom));
     z-index: 40;
+    isolation: isolate;
     display: flex;
     align-items: center;
     justify-content: flex-start;
@@ -2940,11 +2941,53 @@ a,
     white-space: nowrap;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
-    background: rgba(15, 15, 20, 0.95);
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: linear-gradient(140deg, rgba(248, 252, 255, 0.38), rgba(206, 222, 255, 0.2) 42%, rgba(105, 140, 224, 0.18));
+    border: 1px solid rgba(255, 255, 255, 0.44);
     border-radius: 20px;
     padding: 10px 12px;
-    box-shadow: 0 20px 40px rgba(5, 5, 15, 0.35);
+    backdrop-filter: blur(14px) saturate(135%);
+    -webkit-backdrop-filter: blur(14px) saturate(135%);
+    box-shadow:
+      0 16px 34px rgba(10, 20, 45, 0.26),
+      inset 0 1px 0 rgba(255, 255, 255, 0.62),
+      inset 0 -1px 0 rgba(153, 178, 239, 0.32);
+  }
+
+  .app-nav-mobile::before {
+    content: '';
+    position: absolute;
+    inset: 1px;
+    border-radius: inherit;
+    pointer-events: none;
+    background: linear-gradient(120deg, rgba(255, 255, 255, 0.44), rgba(255, 255, 255, 0.08) 42%, rgba(92, 132, 223, 0.14));
+    opacity: 0.75;
+  }
+
+  .app-nav-mobile-item {
+    position: relative;
+    z-index: 1;
+    color: #f3f6ff;
+    text-shadow: 0 1px 0 rgba(24, 37, 76, 0.26);
+    border-color: rgba(255, 255, 255, 0.06);
+  }
+
+  .app-nav-mobile-item-active {
+    color: #ffffff;
+    border-color: rgba(255, 255, 255, 0.5);
+    background: linear-gradient(135deg, rgba(63, 104, 221, 0.58), rgba(30, 178, 201, 0.42));
+    box-shadow:
+      0 8px 18px rgba(28, 56, 124, 0.28),
+      inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  }
+
+  .app-nav-mobile-item:active {
+    transform: scale(0.98);
+  }
+
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .app-nav-mobile {
+      background: rgba(23, 31, 52, 0.94);
+    }
   }
 
   .app-nav-mobile::-webkit-scrollbar {
