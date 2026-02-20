@@ -1708,7 +1708,7 @@ const autoAr = autoArRaw as Dictionary;
 const en: Dictionary = { ...baseEn, ...extraEn };
 const el: Dictionary = { ...baseEl, ...extraEn, ...extraEl, ...autoEl, ...selectorLocaleLabels };
 const ru: Dictionary = { ...baseRu, ...extraEn, ...extraRu, ...autoRu, ...selectorLocaleLabels };
-const uk: Dictionary = { ...baseRu, ...baseUk, ...extraEn, ...extraUk, ...autoUk, ...selectorLocaleLabels };
+const uk: Dictionary = { ...baseEn, ...extraEn, ...baseUk, ...extraUk, ...autoUk, ...selectorLocaleLabels };
 const hi: Dictionary = { ...baseEn, ...extraEn, ...extraHi, ...autoHi, ...selectorLocaleLabels };
 const ar: Dictionary = { ...baseEn, ...extraEn, ...extraAr, ...autoAr, ...selectorLocaleLabels };
 
