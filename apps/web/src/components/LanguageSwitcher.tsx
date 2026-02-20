@@ -3,13 +3,13 @@
 import type { LocaleCode } from '../lib/models/types';
 import { useTranslation } from '../lib/i18n/context';
 
-const localeOptions: Array<{ value: LocaleCode; label: string }> = [
-  { value: 'en', label: 'English' },
-  { value: 'el', label: 'Greek' },
-  { value: 'ru', label: 'Russian' },
-  { value: 'uk', label: 'Ukrainian' },
-  { value: 'hi', label: 'Hindi' },
-  { value: 'ar', label: 'Arabic' }
+const localeOptions: Array<{ value: LocaleCode; label: string; flag: string }> = [
+  { value: 'en', label: 'English', flag: '🇺🇸' },
+  { value: 'el', label: 'Greek', flag: '🇬🇷' },
+  { value: 'ru', label: 'Russian', flag: '🇷🇺' },
+  { value: 'uk', label: 'Ukrainian', flag: '🇺🇦' },
+  { value: 'hi', label: 'Hindi', flag: '🇮🇳' },
+  { value: 'ar', label: 'Arabic', flag: '🇪🇬' }
 ];
 
 export function LanguageSwitcher({ compact = false }: { compact?: boolean }) {
@@ -26,7 +26,7 @@ export function LanguageSwitcher({ compact = false }: { compact?: boolean }) {
       >
         {localeOptions.map((option) => (
           <option key={option.value} value={option.value}>
-            {option.label}
+            {option.flag} {option.label}
           </option>
         ))}
       </select>
