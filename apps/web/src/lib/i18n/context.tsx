@@ -43,10 +43,9 @@ function resolvePreferredLocale(current: LocaleCode): LocaleCode {
   const queryLocale = url.searchParams.get('lang');
   if (isSupportedLocale(queryLocale)) return queryLocale;
 
-  const storedLocale = window.localStorage.getItem(LOCALE_STORAGE_KEY);
-  if (isSupportedLocale(storedLocale)) return storedLocale;
-
-  return current;
+  // Force English as default entry locale for all users unless
+  // locale is explicitly provided in the URL (?lang=...).
+  return DEFAULT_LOCALE;
 }
 
 export function LanguageProvider({ children }: { children: ReactNode }) {

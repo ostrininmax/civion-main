@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from '../lib/i18n/context';
 import { useDemoSelector } from '../lib/storage/use-demo-state';
 
@@ -28,12 +29,26 @@ function isActive(pathname: string, item: NavItem) {
 
 export function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const demoMode = useDemoSelector((state) => state.demoMode);
   const inboxUnread = useDemoSelector((state) => state.messageThreads.reduce((sum, thread) => sum + thread.unreadCount, 0));
   const { t: tt } = useTranslation();
-  const navItems = demoMode
-    ? [...nav, { href: '/qa', key: 'nav.qa', matches: ['/qa'] }]
-    : nav;
+  const lastTouchNavigationAt = useRef(0);
+  const navItems = useMemo(
+    () => (demoMode ? [...nav, { href: '/qa', key: 'nav.qa', matches: ['/qa'] }] : nav),
+    [demoMode]
+  );
+
+  useEffect(() => {
+    for (const item of navItems) {
+      router.prefetch(item.href);
+    }
+  }, [navItems, router]);
+
+  const navigateMobile = (href: string) => {
+    if (pathname === href || pathname.startsWith(`${href}/`)) return;
+    router.push(href);
+  };
 
   return (
     <aside className="card app-nav">
@@ -59,11 +74,28 @@ export function Sidebar() {
         </nav>
       </div>
       <nav className="app-nav-mobile">
-        {navItems.map((item) => (
-          <Link key={item.href} href={item.href} className={`app-nav-mobile-item ${isActive(pathname, item) ? 'app-nav-mobile-item-active' : ''}`}>
-            {tt(item.key)}
-          </Link>
-        ))}
+        {navItems.map((item) => {
+          const active = isActive(pathname, item);
+          return (
+            <button
+              key={item.href}
+              type="button"
+              className={`app-nav-mobile-item ${active ? 'app-nav-mobile-item-active' : ''}`}
+              aria-current={active ? 'page' : undefined}
+              onTouchEnd={(event) => {
+                event.preventDefault();
+                lastTouchNavigationAt.current = Date.now();
+                navigateMobile(item.href);
+              }}
+              onClick={() => {
+                if (Date.now() - lastTouchNavigationAt.current < 450) return;
+                navigateMobile(item.href);
+              }}
+            >
+              {tt(item.key)}
+            </button>
+          );
+        })}
       </nav>
     </aside>
   );

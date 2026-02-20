@@ -1771,6 +1771,9 @@ a,
 }
 
 .app-nav-mobile-item {
+  appearance: none;
+  -webkit-appearance: none;
+  -webkit-tap-highlight-color: transparent;
   text-decoration: none;
   color: #fff;
   font-size: 12px;
@@ -1781,6 +1784,10 @@ a,
   padding: 8px 10px;
   white-space: nowrap;
   flex: 0 0 auto;
+  background: transparent;
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
   transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease;
 }
 
