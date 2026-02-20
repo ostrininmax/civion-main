@@ -2730,6 +2730,16 @@ a,
   background: rgba(13, 18, 34, 0.58);
 }
 
+.demo-tour-spotlight {
+  position: fixed;
+  z-index: 140;
+  border-radius: 16px;
+  border: 2px solid rgba(108, 144, 248, 0.92);
+  box-shadow: 0 0 0 9999px rgba(13, 18, 34, 0.58), 0 0 0 7px rgba(86, 121, 235, 0.18);
+  pointer-events: none;
+  transition: top 140ms ease, left 140ms ease, width 140ms ease, height 140ms ease;
+}
+
 .demo-tour-popover {
   position: fixed;
   z-index: 141;
@@ -2772,6 +2782,45 @@ a,
   position: relative;
   z-index: 142 !important;
   box-shadow: 0 0 0 3px rgba(46, 74, 232, 0.48), 0 0 0 8px rgba(46, 74, 232, 0.18) !important;
+}
+
+@media (max-width: 900px) {
+  .demo-tour-popover {
+    width: calc(100vw - 20px);
+    left: 10px !important;
+    border-radius: 12px;
+    padding: 10px 12px;
+    gap: 6px;
+    max-height: min(30vh, 232px);
+    overflow: auto;
+  }
+
+  .demo-tour-popover h3 {
+    font-size: 18px;
+    line-height: 1.12;
+  }
+
+  .demo-tour-popover p {
+    font-size: 13px;
+    line-height: 1.35;
+  }
+
+  .demo-tour-popover .wallet-action {
+    min-height: 34px;
+    padding: 7px 12px;
+    font-size: 13px;
+  }
+
+  .demo-tour-spotlight {
+    border-width: 1.5px;
+    border-radius: 12px;
+    transition: none;
+    box-shadow: 0 0 0 9999px rgba(13, 18, 34, 0.54), 0 0 0 5px rgba(86, 121, 235, 0.16);
+  }
+
+  .demo-tour-target-active {
+    box-shadow: 0 0 0 2px rgba(46, 74, 232, 0.42), 0 0 0 4px rgba(46, 74, 232, 0.14) !important;
+  }
 }
 
 .onboarding-overlay {

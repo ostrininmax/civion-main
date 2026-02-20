@@ -117,7 +117,7 @@ export const DEMO_SCENARIOS: Record<string, DemoScenario> = {
         id: 'tour-step-7',
         titleKey: 'demo.tour.step7.title',
         bodyKey: 'demo.tour.step7.body',
-        target: '[data-tour="requests-tracker"]',
+        target: '[data-tour="requests-list"]',
         actions: [
           {
             type: 'addAuditEvent',
