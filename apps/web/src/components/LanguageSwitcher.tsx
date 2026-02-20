@@ -4,7 +4,7 @@ import type { LocaleCode } from '../lib/models/types';
 import { useTranslation } from '../lib/i18n/context';
 
 const localeOptions: Array<{ value: LocaleCode; label: string; flag: string }> = [
-  { value: 'en', label: 'English', flag: '🇺🇸' },
+  { value: 'en', label: 'English', flag: '🇬🇧' },
   { value: 'el', label: 'Greek', flag: '🇬🇷' },
   { value: 'ru', label: 'Russian', flag: '🇷🇺' },
   { value: 'uk', label: 'Ukrainian', flag: '🇺🇦' },
