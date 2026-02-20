@@ -1,0 +1,2048 @@
+import type { LocaleCode } from '../models/types';
+import autoArRaw from './generated/auto-ar.json';
+import autoElRaw from './generated/auto-el.json';
+import autoHiRaw from './generated/auto-hi.json';
+import autoRuRaw from './generated/auto-ru.json';
+import autoUkRaw from './generated/auto-uk.json';
+
+type Dictionary = Record<string, string>;
+
+type TemplateVars = Record<string, string | number>;
+
+const baseEn: Dictionary = {
+  'nav.feed': 'Feed',
+  'nav.documents': 'Documents',
+  'nav.services': 'Services',
+  'nav.timeline': 'Timeline',
+  'nav.inbox': 'Inbox',
+  'nav.appointments': 'Appointments',
+  'nav.civic_card': 'Civic Card',
+  'nav.menu': 'Menu',
+  'nav.qa': 'QA',
+
+  'topbar.updates': 'You have active civic updates',
+  'topbar.notifications': 'Notifications',
+
+  'locale.english': 'English',
+  'locale.greek': 'Greek',
+  'locale.ukrainian': 'Ukrainian',
+  'locale.russian': 'Russian',
+
+  'dashboard.personalized_recommendations': 'Personalized recommendations',
+  'dashboard.next_steps': 'Next steps',
+  'dashboard.residence_expires': 'Residence Permit expires in {days} days',
+  'dashboard.avoid_interruption': 'Avoid interruption by starting renewal now.',
+  'dashboard.profile_completeness': 'Profile completeness {percent}%',
+  'dashboard.add_missing_address': 'Add missing address proof to keep services active.',
+  'dashboard.review_profile': 'Review profile fields to keep your readiness high.',
+  'dashboard.services_in_progress': '{count} service in progress',
+  'dashboard.services_in_progress_plural': '{count} services in progress',
+  'dashboard.track_request': 'Track request',
+  'dashboard.renew_now': 'Renew now',
+  'dashboard.complete_profile': 'Complete profile',
+  'dashboard.search': 'Search',
+  'dashboard.search_scope': 'Documents / Services / Requests',
+  'dashboard.search_platform': 'Search platform',
+  'dashboard.search_placeholder': 'Search documents, services, requests',
+  'dashboard.search_empty': 'No matching items found',
+  'dashboard.quick_actions': 'Quick actions',
+  'dashboard.one_tap_tasks': 'One-tap tasks',
+  'dashboard.upload_document': 'Upload document',
+  'dashboard.share_proof': 'Share proof',
+  'dashboard.start_request': 'Start service request',
+  'dashboard.book_appointment': 'Book appointment',
+  'dashboard.documents_label': 'Documents',
+  'dashboard.documents_expiring_hint': '{count} expiring soon',
+  'dashboard.active_services_label': 'Active services',
+  'dashboard.requests_in_progress': 'Requests in progress',
+  'dashboard.readiness_label': 'Readiness',
+  'dashboard.profile_docs_hint': 'Profile + document completeness',
+  'dashboard.featured': 'Featured',
+  'dashboard.featured_action': 'Your digital state card',
+  'dashboard.featured_description': 'Open your core citizen profile, active rights and proof QR.',
+  'dashboard.open_civic_card': 'Open Civic Card',
+  'dashboard.most_used_services': 'Most used services',
+  'dashboard.all_services': 'All services',
+  'dashboard.no_fee': 'No fee',
+  'dashboard.fee_eur': 'Fee €{fee}',
+  'dashboard.ready': 'Ready',
+
+  'wallet.section_documents': 'Documents',
+  'wallet.section_documents_action': 'Beautiful wallet experience',
+  'wallet.stored_documents': 'Stored documents',
+  'wallet.expiring_soon': 'Expiring soon',
+  'wallet.expired': 'Expired',
+  'wallet.open_list': 'Open list',
+  'wallet.renew_docs_hint': 'Renew documents to keep rights active',
+  'wallet.registry_sync': 'Government Registry Sync',
+  'wallet.registry_sync_desc': 'Documents in this demo are prefilled from connected registries. Citizen editing is disabled.',
+  'wallet.read_only_mode': 'Read-only mode',
+  'wallet.in_progress_banner': '{count} service in progress',
+  'wallet.in_progress_banner_plural': '{count} services in progress',
+  'wallet.my_documents': 'My Documents',
+  'wallet.my_documents_action': 'BenefitPass wallet',
+  'wallet.filter_all': 'All',
+  'wallet.filter_expiring': 'Expiring soon',
+  'wallet.filter_expired': 'Expired',
+  'wallet.search_label': 'Search',
+  'wallet.search_placeholder': 'Search by title or issuer',
+  'wallet.sort_label': 'Sort',
+  'wallet.sort_expiry': 'Expiry soonest',
+  'wallet.sort_updated': 'Recently updated',
+  'wallet.sort_issuer': 'Issuer',
+  'wallet.filter_aria': 'Document filter',
+  'wallet.folder_label': 'Folder',
+  'wallet.folder_all': 'All folders',
+  'wallet.folder_identity': 'Identity',
+  'wallet.folder_migration': 'Migration',
+  'wallet.folder_finance': 'Finance',
+  'wallet.folder_health': 'Health',
+  'wallet.folder_business': 'Business',
+  'wallet.empty_title': 'No documents match this view',
+  'wallet.empty_desc': 'Adjust filters or search terms to see available government documents.',
+  'wallet.show_all': 'Show all',
+  'wallet.label_issuer': 'Issuer',
+  'wallet.label_expiry_date': 'Expiry date',
+  'wallet.label_folder': 'Folder',
+  'wallet.not_provided': 'Not provided',
+  'wallet.action_renew': 'Renew',
+  'wallet.action_share_proof': 'Share proof',
+  'wallet.status_active': 'Active',
+  'wallet.status_expiring': 'Expiring soon',
+  'wallet.status_expired': 'Expired',
+  'wallet.status_in_renewal': 'In renewal',
+  'wallet.recent_checks': 'Recent Checks',
+  'wallet.recent_checks_action': 'Last 5 verifications',
+  'wallet.toast_share_copied': 'Proof link copied.',
+  'wallet.toast_share_created': 'Share link generated.',
+  'wallet.toast_share_revoked': 'Share link revoked.',
+  'wallet.toast_download_started': 'Download started: {title}.pdf',
+  'wallet.toast_update_sent': 'Update request sent for {title}.',
+  'wallet.toast_folder_updated': 'Folder updated to {tag}.',
+  'wallet.toast_renewal_started': 'Renewal started ({reference}).',
+  'wallet.reminder_title': 'Document expiry warning: {title}',
+  'wallet.open_details_for': 'Open details for {title}',
+  'wallet.verified': 'verified',
+  'wallet.pending': 'pending',
+  'wallet.fields': 'Fields',
+  'wallet.document_expired': 'Document expired',
+
+  'wallet.active_rights': 'Your Active Rights',
+  'wallet.active_rights_count': '{count} active rights',
+  'wallet.no_rights': 'No rights available',
+  'wallet.open_civic_card': 'Open Civic Card',
+
+  'wallet.checks_verifier': 'Verifier',
+  'wallet.checks_result': 'Result',
+  'wallet.checks_shown': 'Shown',
+  'wallet.checks_timestamp': 'Timestamp',
+  'wallet.no_recent_checks': 'No recent checks yet',
+  'wallet.no_recent_checks_desc': 'Verification events will appear after sharing proof or opening QR checks.',
+  'wallet.checks_data_status_validity': 'Status + validity only',
+  'wallet.checks_data_status_validity_issuer': 'Status + validity + issuer',
+  'wallet.checks_data_student_eligibility': 'Student eligibility + expiry date',
+  'wallet.checks_data_identity_tax': 'Identity status + tax id validity',
+  'wallet.checks_data_update_request': 'Update request: {reason}',
+  'wallet.checks_data_renewal_submitted': 'Renewal submitted ({reference})',
+  'wallet.verifier_citizen_app': 'Citizen App',
+  'wallet.verifier_cyprus_portal': 'Cyprus Services Portal',
+  'wallet.verifier_police': 'Police',
+  'wallet.verifier_transport_gate': 'Transport Gate',
+  'wallet.verifier_university_portal': 'University Portal',
+
+  'wallet.drawer_close': 'Close',
+  'wallet.drawer_document_number': 'Document number',
+  'wallet.drawer_days_remaining': 'Days remaining',
+  'wallet.drawer_days': '{days} days',
+  'wallet.drawer_days_overdue': '{days} days overdue',
+  'wallet.drawer_verification_metadata': 'Verification metadata',
+  'wallet.drawer_source': 'Source',
+  'wallet.drawer_source_registry': 'Government Registry Sync (read-only)',
+  'wallet.drawer_last_updated': 'Last updated',
+  'wallet.drawer_folder_tag': 'Folder / tag',
+  'wallet.drawer_linked_rights': 'Linked Rights',
+  'wallet.drawer_no_linked_rights': 'No linked rights',
+  'wallet.drawer_sharing_controls': 'Sharing controls',
+  'wallet.drawer_share_duration': 'Duration',
+  'wallet.duration_10m': '10 minutes',
+  'wallet.duration_1h': '1 hour',
+  'wallet.duration_24h': '24 hours',
+  'wallet.drawer_share_field_status': 'Status',
+  'wallet.drawer_share_field_validity': 'Validity date',
+  'wallet.drawer_share_field_issuer': 'Issuer',
+  'wallet.drawer_share_field_document_type': 'Document type',
+  'wallet.drawer_generate_share': 'Generate share link',
+  'wallet.drawer_generating_share': 'Generating...',
+  'wallet.drawer_no_active_shares': 'No active shares yet.',
+  'wallet.drawer_share_active_until': 'Active until {date}',
+  'wallet.drawer_share_revoked': 'Revoked',
+  'wallet.drawer_revoke_link': 'Revoke link',
+  'wallet.drawer_document_history': 'Document history',
+  'wallet.history_event_created': 'Created',
+  'wallet.history_event_shared': 'Shared',
+  'wallet.history_event_verified': 'Verified',
+  'wallet.history_event_renewed': 'Renewed',
+  'wallet.history_event_updated': 'Updated',
+  'wallet.history_event_revoked': 'Share revoked',
+  'wallet.history_meta_registry_seed': 'Government registry seed',
+  'wallet.history_meta_registry_sync_check': 'Registry sync check',
+  'wallet.drawer_download_pdf': 'Download PDF',
+  'wallet.drawer_request_update': 'Request update',
+  'wallet.request_update_title': 'Request update',
+  'wallet.request_reason': 'Reason',
+  'wallet.request_reason_placeholder': 'Describe what should be updated',
+  'wallet.submit_request': 'Submit request',
+
+  'wallet.renew_step': 'Step {step} of 4',
+  'wallet.renew_title': 'Renew {title}',
+  'wallet.renew_confirm': 'Confirm the selected document before starting renewal.',
+  'wallet.renew_document_type': 'Document type',
+  'wallet.renew_issuer': 'Issuer',
+  'wallet.renew_checklist': 'Checklist of required items:',
+  'wallet.renew_select_method': 'Select submission method:',
+  'wallet.renew_method_appointment': 'Book appointment',
+  'wallet.renew_method_online': 'Submit online',
+  'wallet.renew_success': 'Renewal request registered successfully.',
+  'wallet.renew_reference': 'Reference number',
+  'wallet.renew_status': 'Status',
+  'wallet.renew_status_in_progress': 'In progress',
+  'wallet.renew_method': 'Method',
+  'wallet.renew_submit': 'Submit renewal',
+  'wallet.finish': 'Finish',
+
+  'wallet.reminder_unavailable': 'Reminder unavailable',
+  'wallet.set_reminder': 'Set reminder',
+  'wallet.saving': 'Saving...',
+  'wallet.reminder_failed': 'Reminder failed',
+
+  'common.today': 'Today',
+  'common.this_week': 'This week',
+  'common.earlier': 'Earlier',
+  'common.open': 'Open',
+  'common.back': 'Back',
+  'common.cancel': 'Cancel',
+  'common.continue': 'Continue',
+  'common.submit': 'Submit',
+  'common.close': 'Close',
+  'common.search': 'Search',
+  'common.reset': 'Reset',
+
+  'status.draft': 'Draft',
+  'status.submitted': 'Submitted',
+  'status.in_review': 'In review',
+  'status.approved': 'Approved',
+  'status.rejected': 'Rejected',
+  'status.appointment_required': 'Appointment required',
+  'status.completed': 'Completed',
+  'status.valid': 'Valid',
+  'status.invalid': 'Invalid',
+
+  'type.document': 'Document',
+  'type.service': 'Service',
+  'type.request': 'Request',
+
+  'doc.passport': 'Passport',
+  'doc.residence_permit': 'Residence Permit',
+  'doc.tax_id': 'Tax ID',
+  'doc.student_id': 'Student ID',
+  'doc.health_insurance': 'Health Insurance',
+  'doc.proof_of_address': 'Proof of Address',
+  'doc.company_document': 'Company Registry Extract',
+
+  'issuer.civil_registry_department': 'Civil Registry Department',
+  'issuer.migration_department': 'Migration Department',
+  'issuer.tax_department': 'Tax Department',
+  'issuer.general_healthcare_system': 'General Healthcare System',
+  'issuer.land_registry_office': 'Land Registry Office',
+  'issuer.municipality_registry': 'Municipality Registry',
+  'issuer.bank_of_cyprus': 'Bank of Cyprus',
+  'issuer.registrar_of_companies': 'Registrar of Companies',
+  'issuer.university_registry': 'University Registry',
+  'issuer.cyprus_services_registry': 'Cyprus Services Registry',
+  'issuer.university_of_cyprus': 'University of Cyprus',
+  'issuer.gesy': 'GESY',
+  'issuer.larnaca_municipality': 'Larnaca Municipality',
+
+  'right.identity_verification': 'Identity verification',
+  'right.consular_services': 'Consular services access',
+  'right.right_to_reside': 'Right to reside',
+  'right.eligible_for_services': 'Eligible for services',
+  'right.tax_filing_access': 'Tax filing access',
+  'right.public_healthcare': 'Public healthcare access',
+  'right.student_discount': 'Student discount',
+  'right.address_proof_accepted': 'Address proof accepted',
+  'right.housing_proof': 'Housing residency proof',
+  'right.business_registry_access': 'Business registry submissions',
+
+  'renew_checklist.biometric_photo': 'Biometric photo',
+  'renew_checklist.current_passport': 'Current passport',
+  'renew_checklist.address_confirmation': 'Address confirmation',
+  'renew_checklist.passport_copy': 'Passport copy',
+  'renew_checklist.proof_of_address': 'Proof of address',
+  'renew_checklist.insurance_confirmation': 'Insurance confirmation',
+  'renew_checklist.proof_of_identity': 'Proof of identity',
+  'renew_checklist.policy_details': 'Policy details',
+  'renew_checklist.recent_supporting_document': 'Recent supporting document'
+};
+
+const baseEl: Dictionary = {
+  'nav.feed': 'Αρχική',
+  'nav.documents': 'Έγγραφα',
+  'nav.services': 'Υπηρεσίες',
+  'nav.timeline': 'Αιτήματα',
+  'nav.inbox': 'Εισερχόμενα',
+  'nav.appointments': 'Ραντεβού',
+  'nav.civic_card': 'Civic Card',
+  'nav.menu': 'Μενού',
+  'nav.qa': 'QA',
+  'topbar.updates': 'Έχετε ενεργές ενημερώσεις',
+  'topbar.notifications': 'Ειδοποιήσεις',
+  'locale.english': 'Αγγλικά',
+  'locale.greek': 'Ελληνικά',
+  'locale.ukrainian': 'Ουκρανικά',
+  'locale.russian': 'Ρωσικά',
+
+  'dashboard.personalized_recommendations': 'Προσωποποιημένες προτάσεις',
+  'dashboard.next_steps': 'Επόμενα βήματα',
+  'dashboard.residence_expires': 'Η άδεια διαμονής λήγει σε {days} ημέρες',
+  'dashboard.avoid_interruption': 'Ξεκινήστε ανανέωση τώρα για να αποφύγετε διακοπή υπηρεσιών.',
+  'dashboard.profile_completeness': 'Πληρότητα προφίλ {percent}%',
+  'dashboard.add_missing_address': 'Προσθέστε αποδεικτικό διεύθυνσης για να διατηρήσετε ενεργές υπηρεσίες.',
+  'dashboard.review_profile': 'Ελέγξτε τα πεδία προφίλ για υψηλή ετοιμότητα.',
+  'dashboard.services_in_progress': '{count} υπηρεσία σε εξέλιξη',
+  'dashboard.services_in_progress_plural': '{count} υπηρεσίες σε εξέλιξη',
+  'dashboard.track_request': 'Παρακολούθηση αιτήματος',
+  'dashboard.renew_now': 'Ανανέωση τώρα',
+  'dashboard.complete_profile': 'Ολοκλήρωση προφίλ',
+  'dashboard.search': 'Αναζήτηση',
+  'dashboard.search_scope': 'Έγγραφα / Υπηρεσίες / Αιτήματα',
+  'dashboard.search_platform': 'Αναζήτηση στην πλατφόρμα',
+  'dashboard.search_placeholder': 'Αναζήτηση σε έγγραφα, υπηρεσίες, αιτήματα',
+  'dashboard.search_empty': 'Δεν βρέθηκαν αποτελέσματα',
+  'dashboard.quick_actions': 'Γρήγορες ενέργειες',
+  'dashboard.one_tap_tasks': 'Ενέργειες με ένα πάτημα',
+  'dashboard.upload_document': 'Μεταφόρτωση εγγράφου',
+  'dashboard.share_proof': 'Κοινοποίηση απόδειξης',
+  'dashboard.start_request': 'Νέο αίτημα υπηρεσίας',
+  'dashboard.book_appointment': 'Κράτηση ραντεβού',
+  'dashboard.documents_label': 'Έγγραφα',
+  'dashboard.documents_expiring_hint': '{count} λήγουν σύντομα',
+  'dashboard.active_services_label': 'Ενεργές υπηρεσίες',
+  'dashboard.requests_in_progress': 'Αιτήματα σε εξέλιξη',
+  'dashboard.readiness_label': 'Ετοιμότητα',
+  'dashboard.profile_docs_hint': 'Προφίλ + πληρότητα εγγράφων',
+  'dashboard.featured': 'Προτεινόμενο',
+  'dashboard.featured_action': 'Η ψηφιακή κρατική κάρτα σας',
+  'dashboard.featured_description': 'Ανοίξτε βασικό προφίλ πολίτη, δικαιώματα και QR απόδειξης.',
+  'dashboard.open_civic_card': 'Άνοιγμα Civic Card',
+  'dashboard.most_used_services': 'Δημοφιλείς υπηρεσίες',
+  'dashboard.all_services': 'Όλες οι υπηρεσίες',
+  'dashboard.no_fee': 'Χωρίς τέλος',
+  'dashboard.fee_eur': 'Τέλος €{fee}',
+  'dashboard.ready': 'Έτοιμο',
+
+  'wallet.section_documents': 'Έγγραφα',
+  'wallet.section_documents_action': 'Πορτοφόλι εγγράφων',
+  'wallet.stored_documents': 'Αποθηκευμένα έγγραφα',
+  'wallet.expiring_soon': 'Λήγουν σύντομα',
+  'wallet.expired': 'Ληγμένα',
+  'wallet.open_list': 'Άνοιγμα λίστας',
+  'wallet.renew_docs_hint': 'Ανανεώστε έγγραφα για να διατηρήσετε ενεργά δικαιώματα',
+  'wallet.registry_sync': 'Συγχρονισμός κρατικού μητρώου',
+  'wallet.registry_sync_desc': 'Τα έγγραφα είναι προσυμπληρωμένα από συνδεδεμένα μητρώα. Η επεξεργασία πολίτη είναι απενεργοποιημένη.',
+  'wallet.read_only_mode': 'Μόνο ανάγνωση',
+  'wallet.in_progress_banner': '{count} υπηρεσία σε εξέλιξη',
+  'wallet.in_progress_banner_plural': '{count} υπηρεσίες σε εξέλιξη',
+  'wallet.my_documents': 'Τα έγγραφά μου',
+  'wallet.my_documents_action': 'Πορτοφόλι BenefitPass',
+  'wallet.filter_all': 'Όλα',
+  'wallet.filter_expiring': 'Λήγουν σύντομα',
+  'wallet.filter_expired': 'Ληγμένα',
+  'wallet.search_label': 'Αναζήτηση',
+  'wallet.search_placeholder': 'Αναζήτηση κατά τίτλο ή εκδότη',
+  'wallet.sort_label': 'Ταξινόμηση',
+  'wallet.sort_expiry': 'Πιο κοντινή λήξη',
+  'wallet.sort_updated': 'Πρόσφατη ενημέρωση',
+  'wallet.sort_issuer': 'Εκδότης',
+  'wallet.filter_aria': 'Φίλτρο εγγράφων',
+  'wallet.folder_label': 'Φάκελος',
+  'wallet.folder_all': 'Όλοι οι φάκελοι',
+  'wallet.folder_identity': 'Ταυτότητα',
+  'wallet.folder_migration': 'Μετανάστευση',
+  'wallet.folder_finance': 'Οικονομικά',
+  'wallet.folder_health': 'Υγεία',
+  'wallet.folder_business': 'Επιχειρήσεις',
+  'wallet.empty_title': 'Δεν υπάρχουν έγγραφα για αυτό το φίλτρο',
+  'wallet.empty_desc': 'Αλλάξτε φίλτρα ή όρους αναζήτησης.',
+  'wallet.show_all': 'Εμφάνιση όλων',
+  'wallet.label_issuer': 'Εκδότης',
+  'wallet.label_expiry_date': 'Ημερομηνία λήξης',
+  'wallet.label_folder': 'Φάκελος',
+  'wallet.not_provided': 'Δεν παρέχεται',
+  'wallet.action_renew': 'Ανανέωση',
+  'wallet.action_share_proof': 'Κοινοποίηση απόδειξης',
+  'wallet.status_active': 'Ενεργό',
+  'wallet.status_expiring': 'Λήγει σύντομα',
+  'wallet.status_expired': 'Ληγμένο',
+  'wallet.status_in_renewal': 'Σε ανανέωση',
+  'wallet.recent_checks': 'Πρόσφατοι έλεγχοι',
+  'wallet.recent_checks_action': 'Τελευταίοι 5 έλεγχοι',
+  'wallet.toast_share_copied': 'Ο σύνδεσμος αντιγράφηκε.',
+  'wallet.toast_share_created': 'Ο σύνδεσμος δημιουργήθηκε.',
+  'wallet.toast_share_revoked': 'Ο σύνδεσμος ανακλήθηκε.',
+  'wallet.toast_download_started': 'Η λήψη ξεκίνησε: {title}.pdf',
+  'wallet.toast_update_sent': 'Το αίτημα ενημέρωσης στάλθηκε για {title}.',
+  'wallet.toast_folder_updated': 'Ο φάκελος ενημερώθηκε σε {tag}.',
+  'wallet.toast_renewal_started': 'Η ανανέωση ξεκίνησε ({reference}).',
+  'wallet.reminder_title': 'Υπενθύμιση λήξης εγγράφου: {title}',
+  'wallet.open_details_for': 'Άνοιγμα λεπτομερειών για {title}',
+  'wallet.verified': 'επαληθευμένο',
+  'wallet.pending': 'σε εκκρεμότητα',
+  'wallet.fields': 'Πεδία',
+  'wallet.document_expired': 'Το έγγραφο έχει λήξει',
+
+  'wallet.active_rights': 'Τα ενεργά δικαιώματά σας',
+  'wallet.active_rights_count': '{count} ενεργά δικαιώματα',
+  'wallet.no_rights': 'Δεν υπάρχουν διαθέσιμα δικαιώματα',
+  'wallet.open_civic_card': 'Άνοιγμα Civic Card',
+
+  'wallet.checks_verifier': 'Ελεγκτής',
+  'wallet.checks_result': 'Αποτέλεσμα',
+  'wallet.checks_shown': 'Προβλήθηκαν',
+  'wallet.checks_timestamp': 'Χρόνος',
+  'wallet.no_recent_checks': 'Δεν υπάρχουν πρόσφατοι έλεγχοι',
+  'wallet.no_recent_checks_desc': 'Τα συμβάντα επαλήθευσης θα εμφανιστούν μετά την κοινοποίηση απόδειξης.',
+  'wallet.checks_data_status_validity': 'Μόνο κατάσταση + ισχύς',
+  'wallet.checks_data_status_validity_issuer': 'Κατάσταση + ισχύς + εκδότης',
+  'wallet.checks_data_student_eligibility': 'Φοιτητική ιδιότητα + ημερομηνία λήξης',
+  'wallet.checks_data_identity_tax': 'Κατάσταση ταυτότητας + ισχύς φορολογικού αριθμού',
+  'wallet.checks_data_update_request': 'Αίτημα ενημέρωσης: {reason}',
+  'wallet.checks_data_renewal_submitted': 'Υποβλήθηκε ανανέωση ({reference})',
+  'wallet.verifier_citizen_app': 'Εφαρμογή πολίτη',
+  'wallet.verifier_cyprus_portal': 'Πύλη Cyprus Services',
+  'wallet.verifier_police': 'Αστυνομία',
+  'wallet.verifier_transport_gate': 'Πύλη μεταφορών',
+  'wallet.verifier_university_portal': 'Πύλη πανεπιστημίου',
+
+  'wallet.drawer_close': 'Κλείσιμο',
+  'wallet.drawer_document_number': 'Αριθμός εγγράφου',
+  'wallet.drawer_days_remaining': 'Ημέρες που απομένουν',
+  'wallet.drawer_days': '{days} ημέρες',
+  'wallet.drawer_days_overdue': '{days} ημέρες καθυστέρηση',
+  'wallet.drawer_verification_metadata': 'Μεταδεδομένα επαλήθευσης',
+  'wallet.drawer_source': 'Πηγή',
+  'wallet.drawer_source_registry': 'Συγχρονισμός κρατικού μητρώου (μόνο ανάγνωση)',
+  'wallet.drawer_last_updated': 'Τελευταία ενημέρωση',
+  'wallet.drawer_folder_tag': 'Φάκελος / ετικέτα',
+  'wallet.drawer_linked_rights': 'Συνδεδεμένα δικαιώματα',
+  'wallet.drawer_no_linked_rights': 'Χωρίς συνδεδεμένα δικαιώματα',
+  'wallet.drawer_sharing_controls': 'Ρυθμίσεις κοινοποίησης',
+  'wallet.drawer_share_duration': 'Διάρκεια',
+  'wallet.duration_10m': '10 λεπτά',
+  'wallet.duration_1h': '1 ώρα',
+  'wallet.duration_24h': '24 ώρες',
+  'wallet.drawer_share_field_status': 'Κατάσταση',
+  'wallet.drawer_share_field_validity': 'Ημερομηνία ισχύος',
+  'wallet.drawer_share_field_issuer': 'Εκδότης',
+  'wallet.drawer_share_field_document_type': 'Τύπος εγγράφου',
+  'wallet.drawer_generate_share': 'Δημιουργία συνδέσμου',
+  'wallet.drawer_generating_share': 'Δημιουργία...',
+  'wallet.drawer_no_active_shares': 'Δεν υπάρχουν ενεργές κοινοποιήσεις.',
+  'wallet.drawer_share_active_until': 'Ενεργό έως {date}',
+  'wallet.drawer_share_revoked': 'Ανακλήθηκε',
+  'wallet.drawer_revoke_link': 'Ανάκληση συνδέσμου',
+  'wallet.drawer_document_history': 'Ιστορικό εγγράφου',
+  'wallet.history_event_created': 'Δημιουργία',
+  'wallet.history_event_shared': 'Κοινοποίηση',
+  'wallet.history_event_verified': 'Επαλήθευση',
+  'wallet.history_event_renewed': 'Ανανέωση',
+  'wallet.history_event_updated': 'Ενημέρωση',
+  'wallet.history_event_revoked': 'Ανάκληση κοινοποίησης',
+  'wallet.history_meta_registry_seed': 'Αρχικοποίηση από κρατικό μητρώο',
+  'wallet.history_meta_registry_sync_check': 'Έλεγχος συγχρονισμού μητρώου',
+  'wallet.drawer_download_pdf': 'Λήψη PDF',
+  'wallet.drawer_request_update': 'Αίτημα ενημέρωσης',
+  'wallet.request_update_title': 'Αίτημα ενημέρωσης',
+  'wallet.request_reason': 'Αιτία',
+  'wallet.request_reason_placeholder': 'Περιγράψτε τι πρέπει να ενημερωθεί',
+  'wallet.submit_request': 'Υποβολή αιτήματος',
+
+  'wallet.renew_step': 'Βήμα {step} από 4',
+  'wallet.renew_title': 'Ανανέωση {title}',
+  'wallet.renew_confirm': 'Επιβεβαιώστε το επιλεγμένο έγγραφο.',
+  'wallet.renew_document_type': 'Τύπος εγγράφου',
+  'wallet.renew_issuer': 'Εκδότης',
+  'wallet.renew_checklist': 'Λίστα απαιτούμενων στοιχείων:',
+  'wallet.renew_select_method': 'Επιλέξτε μέθοδο υποβολής:',
+  'wallet.renew_method_appointment': 'Κράτηση ραντεβού',
+  'wallet.renew_method_online': 'Ηλεκτρονική υποβολή',
+  'wallet.renew_success': 'Το αίτημα ανανέωσης καταχωρήθηκε.',
+  'wallet.renew_reference': 'Αριθμός αναφοράς',
+  'wallet.renew_status': 'Κατάσταση',
+  'wallet.renew_status_in_progress': 'Σε εξέλιξη',
+  'wallet.renew_method': 'Μέθοδος',
+  'wallet.renew_submit': 'Υποβολή ανανέωσης',
+  'wallet.finish': 'Ολοκλήρωση',
+
+  'wallet.reminder_unavailable': 'Η υπενθύμιση δεν είναι διαθέσιμη',
+  'wallet.set_reminder': 'Ορισμός υπενθύμισης',
+  'wallet.saving': 'Αποθήκευση...',
+  'wallet.reminder_failed': 'Αποτυχία υπενθύμισης',
+
+  'common.today': 'Σήμερα',
+  'common.this_week': 'Αυτή την εβδομάδα',
+  'common.earlier': 'Νωρίτερα',
+  'common.open': 'Άνοιγμα',
+  'common.back': 'Πίσω',
+  'common.cancel': 'Ακύρωση',
+  'common.continue': 'Συνέχεια',
+  'common.submit': 'Υποβολή',
+  'common.close': 'Κλείσιμο',
+  'common.search': 'Αναζήτηση',
+  'common.reset': 'Επαναφορά',
+
+  'status.draft': 'Πρόχειρο',
+  'status.submitted': 'Υποβλήθηκε',
+  'status.in_review': 'Σε έλεγχο',
+  'status.approved': 'Εγκρίθηκε',
+  'status.rejected': 'Απορρίφθηκε',
+  'status.appointment_required': 'Απαιτείται ραντεβού',
+  'status.completed': 'Ολοκληρώθηκε',
+  'status.valid': 'Έγκυρο',
+  'status.invalid': 'Μη έγκυρο',
+
+  'type.document': 'Έγγραφο',
+  'type.service': 'Υπηρεσία',
+  'type.request': 'Αίτημα',
+
+  'doc.passport': 'Διαβατήριο',
+  'doc.residence_permit': 'Άδεια διαμονής',
+  'doc.tax_id': 'Φορολογικός αριθμός',
+  'doc.student_id': 'Φοιτητική ταυτότητα',
+  'doc.health_insurance': 'Ασφάλιση υγείας',
+  'doc.proof_of_address': 'Αποδεικτικό διεύθυνσης',
+  'doc.company_document': 'Απόσπασμα μητρώου εταιρείας',
+
+  'issuer.civil_registry_department': 'Τμήμα Πολιτικού Μητρώου',
+  'issuer.migration_department': 'Τμήμα Μετανάστευσης',
+  'issuer.tax_department': 'Τμήμα Φορολογίας',
+  'issuer.general_healthcare_system': 'Γενικό Σύστημα Υγείας',
+  'issuer.land_registry_office': 'Κτηματολόγιο',
+  'issuer.municipality_registry': 'Δημοτικό Μητρώο',
+  'issuer.bank_of_cyprus': 'Τράπεζα Κύπρου',
+  'issuer.registrar_of_companies': 'Έφορος Εταιρειών',
+  'issuer.university_registry': 'Πανεπιστημιακό Μητρώο',
+  'issuer.cyprus_services_registry': 'Μητρώο Cyprus Services',
+  'issuer.university_of_cyprus': 'Πανεπιστήμιο Κύπρου',
+  'issuer.gesy': 'ΓΕΣΥ',
+  'issuer.larnaca_municipality': 'Δήμος Λάρνακας',
+
+  'right.identity_verification': 'Επαλήθευση ταυτότητας',
+  'right.consular_services': 'Πρόσβαση σε προξενικές υπηρεσίες',
+  'right.right_to_reside': 'Δικαίωμα διαμονής',
+  'right.eligible_for_services': 'Επιλεξιμότητα για υπηρεσίες',
+  'right.tax_filing_access': 'Πρόσβαση σε φορολογικές δηλώσεις',
+  'right.public_healthcare': 'Πρόσβαση στη δημόσια υγεία',
+  'right.student_discount': 'Φοιτητική έκπτωση',
+  'right.address_proof_accepted': 'Αποδοχή αποδεικτικού διεύθυνσης',
+  'right.housing_proof': 'Απόδειξη κατοικίας',
+  'right.business_registry_access': 'Υποβολές στο μητρώο επιχειρήσεων',
+
+  'renew_checklist.biometric_photo': 'Βιομετρική φωτογραφία',
+  'renew_checklist.current_passport': 'Τρέχον διαβατήριο',
+  'renew_checklist.address_confirmation': 'Επιβεβαίωση διεύθυνσης',
+  'renew_checklist.passport_copy': 'Αντίγραφο διαβατηρίου',
+  'renew_checklist.proof_of_address': 'Αποδεικτικό διεύθυνσης',
+  'renew_checklist.insurance_confirmation': 'Επιβεβαίωση ασφάλισης',
+  'renew_checklist.proof_of_identity': 'Αποδεικτικό ταυτότητας',
+  'renew_checklist.policy_details': 'Στοιχεία ασφαλιστηρίου',
+  'renew_checklist.recent_supporting_document': 'Πρόσφατο υποστηρικτικό έγγραφο'
+};
+
+const baseUk: Dictionary = {
+  'nav.feed': 'Головна',
+  'nav.documents': 'Документи',
+  'nav.services': 'Послуги',
+  'nav.timeline': 'Запити',
+  'nav.inbox': 'Повідомлення',
+  'nav.appointments': 'Записи',
+  'nav.civic_card': 'Civic Card',
+  'nav.menu': 'Меню',
+  'nav.qa': 'QA'
+};
+
+const baseRu: Dictionary = {
+  'nav.feed': 'Лента',
+  'nav.documents': 'Документы',
+  'nav.services': 'Сервисы',
+  'nav.timeline': 'Запросы',
+  'nav.inbox': 'Входящие',
+  'nav.appointments': 'Записи',
+  'nav.civic_card': 'Civic Card',
+  'nav.menu': 'Меню',
+  'nav.qa': 'QA',
+
+  'topbar.updates': 'У вас есть активные обновления',
+  'topbar.notifications': 'Уведомления',
+
+  'locale.english': 'Английский',
+  'locale.greek': 'Греческий',
+  'locale.ukrainian': 'Украинский',
+  'locale.russian': 'Русский',
+
+  'dashboard.personalized_recommendations': 'Персональные рекомендации',
+  'dashboard.next_steps': 'Следующие шаги',
+  'dashboard.residence_expires': 'ВНЖ истекает через {days} дн.',
+  'dashboard.avoid_interruption': 'Чтобы не было перерыва в услугах, начните продление сейчас.',
+  'dashboard.profile_completeness': 'Заполненность профиля {percent}%',
+  'dashboard.add_missing_address': 'Добавьте подтверждение адреса, чтобы услуги оставались активными.',
+  'dashboard.review_profile': 'Проверьте поля профиля для высокой готовности.',
+  'dashboard.services_in_progress': '{count} услуга в процессе',
+  'dashboard.services_in_progress_plural': '{count} услуг в процессе',
+  'dashboard.track_request': 'Отследить запрос',
+  'dashboard.renew_now': 'Продлить',
+  'dashboard.complete_profile': 'Дополнить профиль',
+  'dashboard.search': 'Поиск',
+  'dashboard.search_scope': 'Документы / Сервисы / Запросы',
+  'dashboard.search_platform': 'Поиск по платформе',
+  'dashboard.search_placeholder': 'Искать документы, сервисы, запросы',
+  'dashboard.search_empty': 'Ничего не найдено',
+  'dashboard.quick_actions': 'Быстрые действия',
+  'dashboard.one_tap_tasks': 'Действия в один клик',
+  'dashboard.upload_document': 'Загрузить документ',
+  'dashboard.share_proof': 'Поделиться подтверждением',
+  'dashboard.start_request': 'Начать запрос услуги',
+  'dashboard.book_appointment': 'Записаться',
+  'dashboard.documents_label': 'Документы',
+  'dashboard.documents_expiring_hint': '{count} скоро истекают',
+  'dashboard.active_services_label': 'Активные услуги',
+  'dashboard.requests_in_progress': 'Запросы в процессе',
+  'dashboard.readiness_label': 'Готовность',
+  'dashboard.profile_docs_hint': 'Профиль + полнота документов',
+  'dashboard.featured': 'Рекомендуемое',
+  'dashboard.featured_action': 'Ваша цифровая гос-карта',
+  'dashboard.featured_description': 'Откройте профиль гражданина, активные права и QR-подтверждение.',
+  'dashboard.open_civic_card': 'Открыть Civic Card',
+  'dashboard.most_used_services': 'Популярные услуги',
+  'dashboard.all_services': 'Все услуги',
+  'dashboard.no_fee': 'Без оплаты',
+  'dashboard.fee_eur': 'Сбор €{fee}',
+  'dashboard.ready': 'Готово',
+
+  'wallet.section_documents': 'Документы',
+  'wallet.section_documents_action': 'Умный кошелек документов',
+  'wallet.stored_documents': 'Сохраненные документы',
+  'wallet.expiring_soon': 'Скоро истекают',
+  'wallet.expired': 'Истекли',
+  'wallet.open_list': 'Открыть список',
+  'wallet.renew_docs_hint': 'Продлите документы, чтобы права оставались активными',
+  'wallet.registry_sync': 'Синхронизация с гос-реестрами',
+  'wallet.registry_sync_desc': 'Документы в демо предзаполнены из подключенных реестров. Редактирование гражданином отключено.',
+  'wallet.read_only_mode': 'Только чтение',
+  'wallet.in_progress_banner': '{count} услуга в процессе',
+  'wallet.in_progress_banner_plural': '{count} услуг в процессе',
+  'wallet.my_documents': 'Мои документы',
+  'wallet.my_documents_action': 'Кошелек BenefitPass',
+  'wallet.filter_all': 'Все',
+  'wallet.filter_expiring': 'Скоро истекают',
+  'wallet.filter_expired': 'Истекли',
+  'wallet.search_label': 'Поиск',
+  'wallet.search_placeholder': 'Поиск по названию или ведомству',
+  'wallet.sort_label': 'Сортировка',
+  'wallet.sort_expiry': 'Сначала ближайшие к сроку',
+  'wallet.sort_updated': 'Недавно обновленные',
+  'wallet.sort_issuer': 'Ведомство',
+  'wallet.filter_aria': 'Фильтр документов',
+  'wallet.folder_label': 'Папка',
+  'wallet.folder_all': 'Все папки',
+  'wallet.folder_identity': 'Идентификация',
+  'wallet.folder_migration': 'Миграция',
+  'wallet.folder_finance': 'Финансы',
+  'wallet.folder_health': 'Здоровье',
+  'wallet.folder_business': 'Бизнес',
+  'wallet.empty_title': 'Нет документов по текущему фильтру',
+  'wallet.empty_desc': 'Измените фильтр или поисковый запрос.',
+  'wallet.show_all': 'Показать все',
+  'wallet.label_issuer': 'Ведомство',
+  'wallet.label_expiry_date': 'Срок действия',
+  'wallet.label_folder': 'Папка',
+  'wallet.not_provided': 'Нет данных',
+  'wallet.action_renew': 'Продлить',
+  'wallet.action_share_proof': 'Поделиться подтверждением',
+  'wallet.status_active': 'Активен',
+  'wallet.status_expiring': 'Скоро истекает',
+  'wallet.status_expired': 'Истек',
+  'wallet.status_in_renewal': 'На продлении',
+  'wallet.recent_checks': 'Последние проверки',
+  'wallet.recent_checks_action': '5 последних верификаций',
+  'wallet.toast_share_copied': 'Ссылка скопирована.',
+  'wallet.toast_share_created': 'Ссылка создана.',
+  'wallet.toast_share_revoked': 'Ссылка отозвана.',
+  'wallet.toast_download_started': 'Начата загрузка: {title}.pdf',
+  'wallet.toast_update_sent': 'Запрос на обновление отправлен для {title}.',
+  'wallet.toast_folder_updated': 'Папка изменена на {tag}.',
+  'wallet.toast_renewal_started': 'Продление начато ({reference}).',
+  'wallet.reminder_title': 'Напоминание об истечении документа: {title}',
+  'wallet.open_details_for': 'Открыть детали для {title}',
+  'wallet.verified': 'подтверждено',
+  'wallet.pending': 'в ожидании',
+  'wallet.fields': 'Поля',
+  'wallet.document_expired': 'Документ истек',
+
+  'wallet.active_rights': 'Ваши активные права',
+  'wallet.active_rights_count': '{count} активных прав',
+  'wallet.no_rights': 'Нет доступных прав',
+  'wallet.open_civic_card': 'Открыть Civic Card',
+
+  'wallet.checks_verifier': 'Проверяющий',
+  'wallet.checks_result': 'Результат',
+  'wallet.checks_shown': 'Показано',
+  'wallet.checks_timestamp': 'Время',
+  'wallet.no_recent_checks': 'Пока нет проверок',
+  'wallet.no_recent_checks_desc': 'События верификации появятся после шаринга подтверждения или QR.',
+  'wallet.checks_data_status_validity': 'Только статус + срок действия',
+  'wallet.checks_data_status_validity_issuer': 'Статус + срок действия + ведомство',
+  'wallet.checks_data_student_eligibility': 'Статус студента + дата истечения',
+  'wallet.checks_data_identity_tax': 'Статус личности + валидность налогового номера',
+  'wallet.checks_data_update_request': 'Запрос на обновление: {reason}',
+  'wallet.checks_data_renewal_submitted': 'Продление отправлено ({reference})',
+  'wallet.verifier_citizen_app': 'Приложение гражданина',
+  'wallet.verifier_cyprus_portal': 'Портал Cyprus Services',
+  'wallet.verifier_police': 'Полиция',
+  'wallet.verifier_transport_gate': 'Транспортный турникет',
+  'wallet.verifier_university_portal': 'Портал университета',
+
+  'wallet.drawer_close': 'Закрыть',
+  'wallet.drawer_document_number': 'Номер документа',
+  'wallet.drawer_days_remaining': 'Осталось дней',
+  'wallet.drawer_days': '{days} дн.',
+  'wallet.drawer_days_overdue': 'Просрочено на {days} дн.',
+  'wallet.drawer_verification_metadata': 'Метаданные верификации',
+  'wallet.drawer_source': 'Источник',
+  'wallet.drawer_source_registry': 'Синхронизация с гос-реестром (только чтение)',
+  'wallet.drawer_last_updated': 'Последнее обновление',
+  'wallet.drawer_folder_tag': 'Папка / тег',
+  'wallet.drawer_linked_rights': 'Связанные права',
+  'wallet.drawer_no_linked_rights': 'Нет связанных прав',
+  'wallet.drawer_sharing_controls': 'Настройки шаринга',
+  'wallet.drawer_share_duration': 'Срок действия',
+  'wallet.duration_10m': '10 минут',
+  'wallet.duration_1h': '1 час',
+  'wallet.duration_24h': '24 часа',
+  'wallet.drawer_share_field_status': 'Статус',
+  'wallet.drawer_share_field_validity': 'Срок действия',
+  'wallet.drawer_share_field_issuer': 'Ведомство',
+  'wallet.drawer_share_field_document_type': 'Тип документа',
+  'wallet.drawer_generate_share': 'Создать ссылку',
+  'wallet.drawer_generating_share': 'Создаю...',
+  'wallet.drawer_no_active_shares': 'Активных ссылок нет.',
+  'wallet.drawer_share_active_until': 'Активна до {date}',
+  'wallet.drawer_share_revoked': 'Отозвана',
+  'wallet.drawer_revoke_link': 'Отозвать ссылку',
+  'wallet.drawer_document_history': 'История документа',
+  'wallet.history_event_created': 'Создан',
+  'wallet.history_event_shared': 'Поделен',
+  'wallet.history_event_verified': 'Проверен',
+  'wallet.history_event_renewed': 'Продлен',
+  'wallet.history_event_updated': 'Обновлен',
+  'wallet.history_event_revoked': 'Доступ отозван',
+  'wallet.history_meta_registry_seed': 'Запись из гос-реестра',
+  'wallet.history_meta_registry_sync_check': 'Проверка синхронизации реестра',
+  'wallet.drawer_download_pdf': 'Скачать PDF',
+  'wallet.drawer_request_update': 'Запросить обновление',
+  'wallet.request_update_title': 'Запрос на обновление',
+  'wallet.request_reason': 'Причина',
+  'wallet.request_reason_placeholder': 'Опишите, что нужно обновить',
+  'wallet.submit_request': 'Отправить запрос',
+
+  'wallet.renew_step': 'Шаг {step} из 4',
+  'wallet.renew_title': 'Продление: {title}',
+  'wallet.renew_confirm': 'Подтвердите документ перед началом продления.',
+  'wallet.renew_document_type': 'Тип документа',
+  'wallet.renew_issuer': 'Ведомство',
+  'wallet.renew_checklist': 'Список необходимых пунктов:',
+  'wallet.renew_select_method': 'Выберите способ подачи:',
+  'wallet.renew_method_appointment': 'Запись в ведомство',
+  'wallet.renew_method_online': 'Онлайн подача',
+  'wallet.renew_success': 'Запрос на продление успешно зарегистрирован.',
+  'wallet.renew_reference': 'Номер заявки',
+  'wallet.renew_status': 'Статус',
+  'wallet.renew_status_in_progress': 'В процессе',
+  'wallet.renew_method': 'Способ',
+  'wallet.renew_submit': 'Отправить продление',
+  'wallet.finish': 'Завершить',
+
+  'wallet.reminder_unavailable': 'Напоминание недоступно',
+  'wallet.set_reminder': 'Поставить напоминание',
+  'wallet.saving': 'Сохранение...',
+  'wallet.reminder_failed': 'Не удалось создать напоминание',
+
+  'common.today': 'Сегодня',
+  'common.this_week': 'На этой неделе',
+  'common.earlier': 'Ранее',
+  'common.open': 'Открыть',
+  'common.back': 'Назад',
+  'common.cancel': 'Отмена',
+  'common.continue': 'Далее',
+  'common.submit': 'Отправить',
+  'common.close': 'Закрыть',
+  'common.search': 'Поиск',
+  'common.reset': 'Сброс',
+
+  'status.draft': 'Черновик',
+  'status.submitted': 'Отправлено',
+  'status.in_review': 'На проверке',
+  'status.approved': 'Одобрено',
+  'status.rejected': 'Отклонено',
+  'status.appointment_required': 'Нужна запись',
+  'status.completed': 'Завершено',
+  'status.valid': 'Действительно',
+  'status.invalid': 'Недействительно',
+
+  'type.document': 'Документ',
+  'type.service': 'Сервис',
+  'type.request': 'Запрос',
+
+  'doc.passport': 'Паспорт',
+  'doc.residence_permit': 'ВНЖ',
+  'doc.tax_id': 'Налоговый номер',
+  'doc.student_id': 'Студенческий билет',
+  'doc.health_insurance': 'Медицинская страховка',
+  'doc.proof_of_address': 'Подтверждение адреса',
+  'doc.company_document': 'Выписка из реестра компании',
+
+  'issuer.civil_registry_department': 'Департамент гражданского реестра',
+  'issuer.migration_department': 'Миграционный департамент',
+  'issuer.tax_department': 'Налоговый департамент',
+  'issuer.general_healthcare_system': 'Государственная система здравоохранения',
+  'issuer.land_registry_office': 'Земельный реестр',
+  'issuer.municipality_registry': 'Муниципальный реестр',
+  'issuer.bank_of_cyprus': 'Bank of Cyprus',
+  'issuer.registrar_of_companies': 'Реестр компаний',
+  'issuer.university_registry': 'Университетский реестр',
+  'issuer.cyprus_services_registry': 'Реестр Cyprus Services',
+  'issuer.university_of_cyprus': 'Университет Кипра',
+  'issuer.gesy': 'GESY',
+  'issuer.larnaca_municipality': 'Муниципалитет Ларнаки',
+
+  'right.identity_verification': 'Проверка личности',
+  'right.consular_services': 'Доступ к консульским услугам',
+  'right.right_to_reside': 'Право на проживание',
+  'right.eligible_for_services': 'Право на получение услуг',
+  'right.tax_filing_access': 'Доступ к налоговой отчетности',
+  'right.public_healthcare': 'Доступ к государственной медицине',
+  'right.student_discount': 'Студенческая скидка',
+  'right.address_proof_accepted': 'Подтверждение адреса принято',
+  'right.housing_proof': 'Подтверждение проживания',
+  'right.business_registry_access': 'Подача в реестр компаний',
+
+  'renew_checklist.biometric_photo': 'Биометрическое фото',
+  'renew_checklist.current_passport': 'Действующий паспорт',
+  'renew_checklist.address_confirmation': 'Подтверждение адреса',
+  'renew_checklist.passport_copy': 'Копия паспорта',
+  'renew_checklist.proof_of_address': 'Подтверждение адреса',
+  'renew_checklist.insurance_confirmation': 'Подтверждение страховки',
+  'renew_checklist.proof_of_identity': 'Подтверждение личности',
+  'renew_checklist.policy_details': 'Данные полиса',
+  'renew_checklist.recent_supporting_document': 'Недавний подтверждающий документ'
+};
+
+const extraEn: Dictionary = {
+  'locale.hindi': 'Hindi',
+  'locale.arabic': 'Arabic',
+  'app.title': 'Cyprus Services',
+  'app.subtitle': 'Documents, services, reminders and assistant in one place.',
+  'topbar.hi_name': 'Hi, {name}',
+  'topbar.no_notifications': 'No notifications yet',
+  'topbar.open_notifications': 'Open notifications',
+  'topbar.notifications_open': 'Notifications open',
+
+  'common.language': 'Language',
+  'common.search_results': 'Search results',
+  'common.breadcrumb': 'Breadcrumb',
+  'common.loading': 'Loading...',
+  'common.no_attachment': 'No attachment',
+  'common.save': 'Save',
+  'common.confirm': 'Confirm',
+  'common.submit_reply': 'Submit reply',
+  'common.online': 'Online',
+  'common.in_person': 'In-person',
+  'common.hybrid': 'Hybrid',
+  'common.na': 'N/A',
+  'common.not_found': 'Not found',
+  'common.unavailable': 'Unavailable',
+  'common.unknown': 'Unknown',
+  'common.days_short': '{count} days',
+  'common.items_count': '{count} items',
+  'common.total_count': '{count} total',
+  'common.unread_count': '{count} unread',
+
+  'reminder.title_placeholder': 'Reminder title',
+  'reminder.create_failed': 'Failed to create reminder',
+  'reminder.creating': 'Creating...',
+  'reminder.add': 'Add reminder',
+  'reminder.severity.informational': 'Informational',
+  'reminder.severity.important': 'Important',
+  'reminder.severity.critical': 'Critical',
+
+  'services.catalog_title': 'Service Catalog',
+  'services.catalog_action': '{count} services',
+  'services.category': 'Category',
+  'services.filter_all_categories': 'All categories',
+  'services.filter_identity': 'Identity',
+  'services.filter_migration': 'Migration',
+  'services.filter_education': 'Education',
+  'services.filter_taxes': 'Taxes',
+  'services.filter_business': 'Business',
+  'services.filter_healthcare': 'Healthcare',
+  'services.filter_online_only': 'Online only',
+  'services.filter_requires_appointment': 'Requires appointment',
+  'services.filter_requires_payment': 'Requires payment',
+  'services.most_used_title': 'Most used',
+  'services.most_used_action': 'High-demand services',
+  'services.recommended_title': 'Recommended for you',
+  'services.recommended_action': 'Based on profile readiness',
+  'services.all_title': 'All services',
+  'services.all_action': 'Digital + in-person coverage',
+  'services.no_services_title': 'No services in this filter',
+  'services.no_services_desc': 'Try relaxing filters to see most-used options.',
+  'services.no_recommendations_title': 'No recommendations currently',
+  'services.no_recommendations_desc': 'Complete your profile and document vault to unlock recommendations.',
+  'services.days_estimated': '{days} days estimated',
+  'services.requirements_count': '{count} requirements',
+  'services.open_service': 'Open service',
+  'services.start_request': 'Start request',
+  'services.view_details': 'View details',
+  'services.no_fee': 'No fee',
+  'services.fee': '€{amount}',
+  'services.service_not_found': 'Service not found',
+  'services.service_not_found_action': 'Catalog lookup',
+  'services.service_not_found_desc': 'No service definition found for `{slug}`.',
+  'services.back_to_services': 'Back to services',
+  'services.expected_time': 'Expected time: {days} days',
+  'services.what_you_get': 'What you get',
+  'services.who_is_eligible': 'Who is eligible',
+  'services.fees': 'Fees',
+  'services.mode': 'Mode',
+  'services.no_payment_required': 'No payment required',
+  'services.requirements': 'Requirements',
+  'services.requirements_found': 'Found in vault: {title}',
+  'services.requirements_missing': 'Missing in vault',
+  'services.process_steps': 'Process steps',
+  'services.workflow': '1-5 workflow',
+  'services.book_appointment': 'Book appointment',
+  'services.open_list': 'Open list',
+  'services.timeline': 'Timeline',
+  'services.processing': 'in processing',
+
+  'service.category.identity': 'Identity',
+  'service.category.migration': 'Migration',
+  'service.category.education': 'Education',
+  'service.category.taxes': 'Taxes',
+  'service.category.business': 'Business',
+  'service.category.healthcare': 'Healthcare',
+
+  'service.mode.online': 'Online',
+  'service.mode.in_person': 'In-person',
+  'service.mode.hybrid': 'Hybrid',
+
+  'service.temporary-residence-renewal.title': 'Temporary Residence Permit Renewal',
+  'service.temporary-residence-renewal.outcome': 'Extended temporary legal stay in Cyprus.',
+  'service.temporary-residence-renewal.eligibility': 'Residents with a currently valid or recently expired permit.',
+  'service.student-status-verification.title': 'Student Status Verification',
+  'service.student-status-verification.outcome': 'Official proof of active student status for discounts and services.',
+  'service.student-status-verification.eligibility': 'Students enrolled in recognized institutions.',
+  'service.tax-clearance-certificate.title': 'Tax Clearance Certificate',
+  'service.tax-clearance-certificate.outcome': 'Tax clearance certificate for legal and business procedures.',
+  'service.tax-clearance-certificate.eligibility': 'Tax residents with no outstanding filings.',
+  'service.company-record-update.title': 'Company Registry Record Update',
+  'service.company-record-update.outcome': 'Updated official company record in registry.',
+  'service.company-record-update.eligibility': 'Directors or authorized representatives.',
+  'service.national-id-reissue.title': 'National ID Reissue',
+  'service.national-id-reissue.outcome': 'Reissued identity document.',
+  'service.national-id-reissue.eligibility': 'Citizens requiring replacement or renewal.',
+  'service.gesy-insurance-update.title': 'GESY Insurance Update',
+  'service.gesy-insurance-update.outcome': 'Updated healthcare insurance record in GESY.',
+  'service.gesy-insurance-update.eligibility': 'Residents with active healthcare coverage.',
+
+  'service.requirement.passport': 'Passport',
+  'service.requirement.residence_permit': 'Residence permit',
+  'service.requirement.proof_of_address': 'Proof of address',
+  'service.requirement.health_insurance': 'Health insurance',
+  'service.requirement.student_id_or_enrollment': 'Student ID or enrollment proof',
+  'service.requirement.tax_id': 'Tax ID',
+  'service.requirement.company_document': 'Company document',
+  'service.requirement.signed_board_resolution': 'Signed board resolution',
+  'service.requirement.old_id_or_passport': 'Old ID or passport',
+  'service.requirement.biometric_photo': 'Biometric photo',
+  'service.requirement.health_insurance_document': 'Health insurance document',
+  'service.requirement.address_confirmation': 'Address confirmation',
+
+  'service.step.confirm_identity': 'Confirm identity',
+  'service.step.attach_required_documents': 'Attach required documents',
+  'service.step.choose_submission_method': 'Choose submission method',
+  'service.step.pay_fee': 'Pay fee',
+  'service.step.receive_decision': 'Receive decision',
+  'service.step.confirm_profile_data': 'Confirm profile data',
+  'service.step.attach_student_document': 'Attach student document',
+  'service.step.submit_request': 'Submit request',
+  'service.step.receive_digital_confirmation': 'Receive digital confirmation',
+  'service.step.validate_tax_profile': 'Validate tax profile',
+  'service.step.attach_supporting_files': 'Attach supporting files',
+  'service.step.submit_declaration': 'Submit declaration',
+  'service.step.download_certificate': 'Download certificate',
+  'service.step.confirm_representative': 'Confirm representative',
+  'service.step.attach_legal_files': 'Attach legal files',
+  'service.step.book_registry_slot': 'Book registry slot',
+  'service.step.submit_in_person': 'Submit in person',
+  'service.step.receive_confirmation': 'Receive confirmation',
+  'service.step.book_appointment': 'Book appointment',
+  'service.step.capture_biometrics': 'Capture biometrics',
+  'service.step.collect_document': 'Collect document',
+  'service.step.review_profile_data': 'Review profile data',
+  'service.step.attach_proof': 'Attach proof',
+  'service.step.receive_update_result': 'Receive update result',
+
+  'wizard.step_of': 'Step {step} of 5',
+  'wizard.start': 'Start {title}',
+  'wizard.close_aria': 'Close request wizard',
+  'wizard.confirm_details': 'Confirm your details from connected registries (read-only).',
+  'wizard.full_name': 'Full name',
+  'wizard.date_of_birth': 'Date of birth',
+  'wizard.address': 'Address',
+  'wizard.contact': 'Contact',
+  'wizard.attach_required': 'Attach required documents from your vault.',
+  'wizard.mock_upload_placeholder': 'Mock upload file name',
+  'wizard.add_upload': 'Add upload',
+  'wizard.choose_delivery': 'Choose delivery method.',
+  'wizard.delivery_online': 'Online submission',
+  'wizard.delivery_in_person': 'In-person submission',
+  'wizard.payment_required': 'Payment required before submission.',
+  'wizard.service_fee': 'Service fee',
+  'wizard.mock_payment_done': 'Mock payment completed',
+  'wizard.payment': 'Payment',
+  'wizard.request_submitted': 'Request submitted successfully.',
+  'wizard.reference_number': 'Reference number',
+  'wizard.open_request_tracking': 'Open request tracking',
+  'wizard.submit_request': 'Submit request',
+
+  'requests.title': 'Requests / Cases',
+  'requests.empty_title': 'No requests yet',
+  'requests.empty_desc': 'Start your first service request to begin tracking.',
+  'requests.start_first': 'Start your first service',
+  'requests.updated': 'Updated: {date}',
+  'requests.delivery': 'Delivery: {mode}',
+  'requests.open_details': 'Open details',
+  'requests.events_title': 'Recent request events',
+  'requests.events_action': 'Timeline',
+  'requests.not_found_title': 'Request not found',
+  'requests.not_found_action': 'Tracking',
+  'requests.not_found_desc': 'This request does not exist or was removed.',
+  'requests.back_to_timeline': 'Back to timeline',
+  'requests.breadcrumb': 'Requests',
+  'requests.submitted': 'Submitted: {date}',
+  'requests.status_tracker': 'Request status tracker',
+  'requests.add_missing_document': 'Add missing document',
+  'requests.reschedule_appointment': 'Reschedule appointment',
+  'requests.withdraw_request': 'Withdraw request',
+  'requests.submitted_data': 'Submitted data',
+  'requests.summary': 'Summary',
+  'requests.delivery_method': 'Delivery method',
+  'requests.payment_label': 'Payment',
+  'requests.payment_paid': 'Paid €{amount}',
+  'requests.payment_not_paid': 'Not paid',
+  'requests.last_update': 'Last update',
+  'requests.attached_documents': 'Attached documents',
+  'requests.messages': 'Messages',
+  'requests.no_thread': 'No linked authority thread',
+  'requests.no_thread_desc': 'Messages will appear when the authority sends an update.',
+  'requests.open_full_conversation': 'Open full conversation',
+  'requests.add_doc_title': 'Add missing document',
+  'requests.select_doc': 'Select document from vault',
+  'requests.choose_doc': 'Choose document',
+  'requests.submit_doc': 'Submit',
+  'requests.attached_message': 'Attached additional document: {title}',
+  'requests.demo_controls': 'Demo controls',
+  'requests.simulate_lifecycle': 'Simulate lifecycle',
+  'requests.request_status': 'Request status',
+  'requests.apply_status': 'Apply status',
+  'requests.add_authority_message': 'Add authority message',
+  'requests.demo_update': 'Demo update: {status}',
+  'requests.demo_authority_update': 'Demo authority update: please confirm your latest address document.',
+
+  'timeline.event': 'Event',
+  'timeline.status': 'Status',
+  'timeline.time': 'Time',
+  'timeline.request_submitted': 'Request submitted',
+  'timeline.request_in_review': 'Request moved to review',
+  'timeline.request_reference_submitted': 'Request {reference} submitted',
+  'timeline.status_changed': 'Status changed to {status}',
+  'timeline.request_withdrawn': 'Request withdrawn by citizen',
+  'timeline.additional_info_submitted': 'Additional information submitted',
+  'timeline.appointment_booked': 'Appointment booked',
+  'timeline.request_updated': 'Request updated',
+  'timeline.verification_logged': 'Verification event logged',
+
+  'inbox.title': 'Secure Inbox',
+  'inbox.threads_action': '{count} threads',
+  'inbox.threads_aria': 'Message threads',
+  'inbox.no_thread_selected': 'No thread selected',
+  'inbox.no_thread_selected_desc': 'Select a thread to view secure conversation history.',
+  'inbox.secure_channel': 'End-to-end secure civic messaging',
+  'inbox.reply': 'Reply',
+  'inbox.reply_placeholder': 'Provide requested information',
+  'inbox.attach_from_vault': 'Attach document from vault',
+  'inbox.submit_reply': 'Submit reply',
+  'inbox.police_verification_system': 'Police verification system',
+  'inbox.request_address_update': 'Please attach updated address confirmation for request {reference}.',
+  'inbox.tax_request_received': 'Tax clearance request was received and is being processed.',
+  'inbox.student_status_updated': 'Student status verification updated.',
+  'inbox.identity_verification_success': 'Latest identity verification was successful.',
+  'inbox.request_received': 'Your request {reference} has been received.',
+
+  'appointments.title': 'Appointments',
+  'appointments.action': '{count} upcoming',
+  'appointments.book': 'Book appointment',
+  'appointments.upcoming': 'Upcoming',
+  'appointments.past': 'Past',
+  'appointments.none_upcoming': 'No upcoming appointments.',
+  'appointments.none_past': 'No past appointments.',
+  'appointments.reschedule': 'Reschedule',
+  'appointments.book_title': 'Book appointment',
+  'appointments.reschedule_title': 'Reschedule appointment',
+  'appointments.office': 'Office location',
+  'appointments.slot': 'Available slot',
+  'appointments.confirm': 'Confirm',
+  'appointments.request_title': 'Request appointment ({requestId})',
+  'appointments.default_title': 'Citizen service appointment',
+  'appointments.migration_department_title': 'Migration Department appointment',
+  'appointments.tax_consultation_title': 'Tax office consultation',
+  'appointments.toast_booked': 'Appointment booked and added to timeline.',
+  'appointments.toast_rescheduled': 'Appointment rescheduled.',
+
+  'office.nicosia': 'Nicosia',
+  'office.limassol': 'Limassol',
+  'office.larnaca': 'Larnaca',
+  'office.paphos': 'Paphos',
+
+  'notifications.title': 'Notifications',
+  'notifications.mark_all_read': 'Mark all as read',
+  'notifications.none_title': 'No notifications',
+  'notifications.none_desc': 'You are all caught up.',
+
+  'notification.residence_expiring_title': 'Residence Permit expires in 10 days',
+  'notification.residence_expiring_body': 'Renew now to avoid service interruption.',
+  'notification.request_review_title': 'Request {reference} moved to review',
+  'notification.request_review_body': '{authority} started processing your case.',
+  'notification.new_message_title': 'New message from {authority}',
+  'notification.additional_address': 'Additional address proof requested.',
+  'notification.verification_completed': 'Verification completed',
+  'notification.verification_completed_body': '{authority} checked your proof successfully.',
+  'notification.request_submitted_title': 'Request submitted: {reference}',
+  'notification.request_processing_body': '{service} is now in processing.',
+  'notification.appointment_required_title': 'Appointment required',
+  'notification.appointment_required_body': 'Choose a time slot to continue processing your request.',
+  'notification.status_updated_title': '{reference} status updated',
+  'notification.status_updated_body': 'New status: {status}',
+  'notification.request_withdrawn_title': '{reference} withdrawn',
+  'notification.request_withdrawn_body': 'The request was withdrawn and closed.',
+  'notification.appointment_confirmed_title': 'Appointment confirmed',
+  'notification.appointment_confirmed_body': '{title} on {date}',
+  'notification.appointment_rescheduled_title': 'Appointment rescheduled',
+  'notification.appointment_rescheduled_body': '{title} moved to {date}',
+  'notification.document_shared_title': 'Document shared',
+  'notification.document_shared_body': 'Secure proof link active until {time}',
+  'notification.open_message': 'Open message',
+  'notification.view_request': 'View request',
+  'notification.track_request': 'Track request',
+  'notification.book_appointment': 'Book appointment',
+  'notification.view_appointments': 'View appointments',
+  'notification.view_timeline': 'View timeline',
+  'notification.open_security': 'Open security',
+
+  'civic.page_title': 'Civic Card (BenefitPass)',
+  'civic.page_action': 'Data-minimised proof',
+  'civic.id_number': 'ID number: {value}',
+  'civic.readiness': 'Readiness: {value}%',
+  'civic.summary_badge': 'BenefitPass Summary',
+  'civic.summary_title': 'Portable proof for service eligibility checks',
+  'civic.summary_desc':
+    'Use this screen to present a short-lived QR token. Verifiers only get eligibility claims and issuer metadata, not your full personal profile.',
+  'civic.active_rights': 'Active Rights',
+  'civic.online_mode': 'Online mode active',
+  'civic.offline_mode': 'Offline mode',
+  'civic.online_mode_desc': 'QR tokens rotate in real time and can be validated instantly.',
+  'civic.offline_mode_desc': 'Using last valid token issued at {date}. Some real-time checks may be unavailable.',
+  'civic.privacy_mode': 'Privacy mode',
+  'civic.privacy_minimal': 'Minimal proof',
+  'civic.privacy_extended': 'Include issuer + doc type',
+  'civic.qr_alt': 'Civic Card verification QR code',
+  'civic.qr_loading': 'Generating QR...',
+  'civic.qr_generation_failed': 'Could not generate QR. Please try again.',
+  'civic.rotates_every': 'QR rotates every {seconds}s',
+  'civic.next_rotation': 'Next rotation in {seconds}s',
+  'civic.issued': 'Issued: {date}',
+  'civic.expires': 'Expires: {date}',
+  'civic.generate_qr': 'Generate new QR',
+  'civic.share_proof': 'Share proof',
+  'civic.share_copied': 'Proof link copied',
+  'civic.show_big_screen': 'Show in big screen',
+  'civic.authority_demo': 'Start authority check demo',
+  'civic.clipboard_unavailable': 'Clipboard unavailable.',
+  'civic.what_verifier_sees': 'What the verifier sees',
+  'civic.status': 'Status',
+  'civic.eligible': 'Eligible',
+  'civic.not_eligible': 'Not eligible',
+  'civic.validity_date': 'Validity date',
+  'civic.issuer': 'Issuer',
+  'civic.document_type': 'Document type',
+  'civic.benefitpass': 'BenefitPass',
+  'civic.disclosure':
+    'Privacy-by-design: full personal profile is never shared by default. Only verification claims required for this check are disclosed.',
+  'civic.big_qr_aria': 'Large QR view',
+  'civic.large_qr_alt': 'Large civic QR',
+  'civic.scanner': 'Civic Card Scanner',
+  'civic.scope.trp_valid': 'Temporary Residence Permit valid',
+  'civic.scope.transport_concession': 'Transport concession',
+  'civic.one_sentence': 'Prove your rights instantly - without sharing extra personal data.',
+
+  'verify.title': 'Verifier',
+  'verify.action': 'BenefitPass check',
+  'verify.token_required': 'Token required',
+  'verify.token_required_desc': 'Provide `?token=...` to validate a Civic Card proof link.',
+  'verify.unavailable': 'Verification unavailable',
+  'verify.unavailable_desc': 'The verifier service is temporarily unavailable.',
+  'verify.reason': 'Reason: {reason}',
+  'verify.unknown_issuer': 'Unknown issuer',
+  'verify.profile_min': 'Profile minimisation: no full personal profile fields are shared by default.',
+  'verify.back_to_card': 'Back to Civic Card',
+  'verify.expiration_timer': 'Expiration timer: {label}',
+  'verify.expired': 'Expired',
+  'verify.benefitpass_check': 'BenefitPass check',
+
+  'authority.title': 'Authority Check Demo',
+  'authority.subtitle': 'Citizen proof and verifier panel side by side.',
+  'authority.police_mode': 'Police check mode',
+  'authority.border_mode': 'Border crossing mode',
+  'authority.fullscreen': 'Fullscreen',
+  'authority.citizen_panel': 'Citizen',
+  'authority.citizen_title': 'Civic Card QR proof',
+  'authority.officer_panel': 'Officer / verifier',
+  'authority.officer_title': 'Scan and validate',
+  'authority.officer_hint': 'Verifier sees only what is needed: status + validity.',
+  'authority.log_toggle': 'Log verification event',
+  'authority.scan_qr': 'Scan QR',
+  'authority.simulate_expired_token': 'Simulate expired token',
+  'authority.simulate_expired_permit': 'Simulate expired permit',
+  'authority.waiting_scan': 'Waiting for scan',
+  'authority.status_label': 'Eligibility: {value}',
+  'authority.validity_label': 'Validity: {value}',
+  'authority.issuer_label': 'Issuer: {value}',
+  'authority.minimal_statement': 'Only status + validity shown',
+  'authority.invalid_token': 'Token expired or invalid. Generate new QR.',
+  'authority.invalid_permit': 'Permit expired. Renewal required.',
+  'authority.toast_invalid': 'Verification failed. Please generate a new proof.',
+  'authority.toast_valid': 'Verification successful and logged.',
+  'authority.simulated_expired_token': 'Expired token simulated.',
+  'authority.simulated_expired_permit': 'Expired permit simulated.',
+  'authority.travel_status': 'Travel status: {status}',
+  'authority.travel_idle': 'Idle',
+  'authority.travel_in_progress': 'Crossing in progress',
+  'authority.travel_cleared': 'Cleared',
+  'authority.travel_needs_proof': 'Needs new proof',
+  'authority.border_checkpoint': 'Border Checkpoint',
+
+  'demo.controls.open': 'Open demo controls',
+  'demo.controls.panel_badge': 'Demo mode',
+  'demo.controls.panel_title': 'Demo Controls',
+  'demo.controls.start_tour': 'Start guided tour',
+  'demo.controls.presenter_mode': 'Start presenter mode',
+  'demo.controls.police_check': 'Run Police Check scenario',
+  'demo.controls.border_crossing': 'Run Border Crossing scenario',
+
+  'demo.tour.title': 'Guided Tour',
+  'demo.tour.description': 'Interactive walkthrough of the core citizen verification flow.',
+  'demo.tour.step1.title': 'Government registry sync',
+  'demo.tour.step1.body': 'Documents are synced from connected government registries in read-only mode.',
+  'demo.tour.step2.title': 'Expiring Residence Permit',
+  'demo.tour.step2.body': 'This permit is expiring soon. The drawer opens with renewal and proof options.',
+  'demo.tour.step3.title': 'Rights and share controls',
+  'demo.tour.step3.body': 'Linked rights are derived from the document and sharing stays data-minimised.',
+  'demo.tour.step4.title': 'Open Civic Card',
+  'demo.tour.step4.body': 'Citizen opens BenefitPass card to present proof instantly.',
+  'demo.tour.step5.title': 'Rotating QR proof',
+  'demo.tour.step5.body': 'QR rotates automatically and shows minimal disclosure by default.',
+  'demo.tour.step6.title': 'Verifier validation',
+  'demo.tour.step6.body': 'Verifier checks token validity and sees only required attributes.',
+  'demo.tour.step7.title': 'Trusted audit trail',
+  'demo.tour.step7.body': 'Verification creates notification, timeline update, and audit event immediately.',
+  'demo.tour.step8.title': 'BenefitPass value',
+  'demo.tour.step8.body': 'BenefitPass reduces queues and paperwork by turning eligibility into instant proof.',
+  'demo.tour.skip': 'Skip',
+  'demo.tour.restart': 'Restart tour',
+  'demo.tour.next': 'Next',
+  'demo.tour.finish': 'Finish',
+  'demo.tour.target_missing': 'Target element not visible right now. Continue to next step.',
+
+  'demo.presenter.badge': 'Presenter mode',
+  'demo.presenter.title': 'Live Demo Script',
+  'demo.presenter.description': 'Use N/P/R/F keys to run the scripted flow in 3-5 minutes.',
+  'demo.presenter.next_step': 'Next step',
+  'demo.presenter.live': 'Live app view',
+  'demo.presenter.current_view': 'Current scene',
+  'demo.presenter.iframe_title': 'Presenter live preview',
+  'demo.presenter.step1.title': 'Citizen has an expiring Residence Permit',
+  'demo.presenter.step1.body': 'Open the expiring permit card and show renewal context.',
+  'demo.presenter.step2.title': 'BenefitPass suggests the next action',
+  'demo.presenter.step2.body': 'Show recommended next step and start renewal in under 30 seconds.',
+  'demo.presenter.step3.title': 'Citizen opens Civic Card and QR',
+  'demo.presenter.step3.body': 'Present the short-lived proof token on screen.',
+  'demo.presenter.step4.title': 'Officer verifies minimal data',
+  'demo.presenter.step4.body': 'Verifier sees only eligibility status and validity date.',
+  'demo.presenter.step5.title': 'Audit and timeline update instantly',
+  'demo.presenter.step5.body': 'Verification writes a trusted event to notifications and timeline.',
+
+  'demo.police.title': 'Police Check',
+  'demo.police.description': 'Generate token and open split-screen verification.',
+  'demo.border.title': 'Border Crossing',
+  'demo.border.description': 'Launch checkpoint verification with travel status tracking.',
+  'demo.border.next_step_title': 'Border crossing mode',
+  'demo.border.next_step_desc': 'Open split-screen checkpoint verification flow.',
+
+  'demo.notification.police_verified_title': 'Your Civic Card was verified by Police',
+  'demo.notification.police_verified_body': 'Verification event logged in your timeline.',
+  'demo.notification.crossing_started_title': 'Border crossing mode started',
+  'demo.notification.crossing_started_body': 'Checkpoint verification started. Open authority view.',
+  'demo.notification.border_cleared_title': 'Border crossing cleared',
+  'demo.notification.border_cleared_body': 'Checkpoint accepted your proof. Status: Cleared.',
+  'demo.toast.scenario_started': 'Scenario started: {scenario}',
+  'demo.toast.renewal_started': 'Renewal flow started',
+  'demo.toast.verification_valid': 'Verification logged as valid.',
+  'demo.toast.verification_invalid': 'Verification logged as invalid.',
+
+  'qa.mode.enable': 'Enable QA mode',
+  'qa.mode.disable': 'Disable QA mode',
+  'qa.open_page': 'Open Interaction Checklist',
+  'qa.clear_logs': 'Clear QA logs',
+  'qa.console.title': 'QA click console',
+  'qa.console.empty': 'No interactions logged yet',
+  'qa.page_title': 'Interaction Checklist',
+  'qa.page_action': '{working}/{total} working',
+  'qa.demo_required_title': 'Enable Demo Mode to use QA checklist',
+  'qa.demo_required_desc': 'This page is intentionally available only for demo rehearsals and QA passes.',
+  'qa.open_settings': 'Open settings',
+  'qa.mode_badge': 'QA Mode',
+  'qa.mode_desc': 'Turn on click outlines and live click console for demo rehearsal.',
+  'qa.mode_enabled': 'QA mode enabled',
+  'qa.mode_disabled': 'QA mode disabled',
+  'qa.summary_badge': 'QA Summary',
+  'qa.summary_total': 'Total interactions mapped: {count}',
+  'qa.summary_working': 'Working: {count}',
+  'qa.summary_broken': 'Broken: {count}',
+  'qa.summary_missing': 'Missing: {count}',
+  'qa.coverage_badge': 'Live click coverage',
+  'qa.coverage_desc': 'Logged clicks: {count}. Use this during presentation rehearsal to ensure every CTA is exercised.',
+  'qa.scan_title': 'Programmatic DOM Scan',
+  'qa.scan_action': 'Automatic detection by route',
+  'qa.scan_route': 'Route',
+  'qa.scan_refresh': 'Refresh scan',
+  'qa.scan_error': 'Failed to scan route. Open route manually and retry.',
+  'qa.scan_expected': 'UI interaction should produce navigation, state update, modal, or toast feedback.',
+  'qa.scan_fix_notes': 'Detected automatically from DOM scan.',
+  'qa.manual_title': 'Manual QA Checklist',
+  'qa.manual_action': 'Exhaustive expected interactions',
+  'qa.column.page': 'Page',
+  'qa.column.label': 'Element label',
+  'qa.column.type': 'Type',
+  'qa.column.expected': 'Expected behavior',
+  'qa.column.status': 'Status',
+  'qa.column.notes': 'Fix notes',
+
+  'settings.title': 'Settings',
+  'settings.action': 'Security + preferences',
+  'settings.language_badge': 'Language',
+  'settings.language_desc': 'Choose application language.',
+  'settings.demo_badge': 'Demo Mode',
+  'settings.demo_desc': 'Enable demo controls and rich sample data.',
+  'settings.demo_enabled': 'Enabled',
+  'settings.demo_disabled': 'Disabled',
+  'settings.reset_demo': 'Reset demo data',
+  'settings.links_badge': 'Quick links',
+  'settings.notifications_center': 'Notifications Center',
+  'settings.profile': 'Profile',
+  'settings.consents': 'Data consents',
+  'settings.security': 'Security activity',
+
+  'profile.title': 'Profile',
+  'profile.action': 'Readiness {percent}%',
+  'profile.completion_badge': 'Profile completion',
+  'profile.completion_desc': 'Keep profile fields complete for faster service approvals.',
+  'profile.readiness_score': 'Readiness score',
+  'profile.full_name': 'Full name',
+  'profile.date_of_birth': 'Date of birth',
+  'profile.address': 'Address',
+  'profile.phone': 'Phone',
+  'profile.email': 'Email',
+  'profile.emergency_contact': 'Emergency contact',
+  'profile.save': 'Save profile',
+  'profile.updated': 'Profile updated.',
+
+  'consents.title': 'Consents',
+  'consents.action': 'Data minimisation controls',
+  'consents.scope': 'Scope: {scope}',
+  'consents.last_sync': 'Last sync: {date}',
+  'consents.connected': 'Connected',
+  'consents.revoked': 'Revoked (demo)',
+  'consent.population_registry': 'Population Registry',
+  'consent.tax_registry': 'Tax Registry',
+  'consent.education_registry': 'Education Registry',
+  'consent.scope_identity_residency': 'Identity + residency status',
+  'consent.scope_tax_profile': 'Tax profile status',
+  'consent.scope_student': 'Student status',
+
+  'security.title': 'Security activity',
+  'security.action': 'Audit trail',
+  'security.verifier': 'Verifier',
+  'security.result': 'Result',
+  'security.shown_data': 'Shown data',
+  'security.time': 'Time',
+  'security.signins_title': 'Recent sign-ins',
+  'security.signins_action': 'Mocked for demo',
+  'security.web': 'Web',
+  'security.mobile': 'Mobile',
+  'security.report': 'Report suspicious activity',
+  'security.report_title': 'Report suspicious activity',
+  'security.report_reason': 'Describe what looked suspicious',
+  'security.report_placeholder': 'Example: unknown login from another city',
+  'security.report_submit': 'Send report',
+  'security.report_sent': 'Security report sent. Our team will review it.',
+  'security.report_notification_title': 'Security report received',
+  'security.report_notification_body': 'Your suspicious activity report is now under review.',
+
+  'processes.title': 'Digital Services',
+  'processes.action': '{count} available',
+  'processes.catalog_unavailable': 'Catalog unavailable',
+  'processes.catalog_unavailable_desc': 'Services will appear when API is available.',
+  'processes.eta': 'ETA {days} days',
+  'processes.open_flow': 'Open flow',
+  'processes.not_started': 'Not started',
+  'processes.in_progress': 'In progress',
+  'processes.submitted': 'Submitted',
+  'processes.completed': 'Completed',
+  'processes.start_service': 'Start service',
+  'processes.starting': 'Starting...',
+  'processes.start_failed': 'Failed to start',
+  'processes.mark_step_complete': 'Mark step complete',
+  'processes.step_saving': 'Saving...',
+  'processes.step_failed': 'Step update failed',
+  'processes.submit_application': 'Submit application',
+  'processes.submitting': 'Submitting...',
+  'processes.submit_failed': 'Submission failed',
+  'processes.mark_approved': 'Mark approved',
+  'processes.finalizing': 'Finalizing...',
+  'processes.complete_failed': 'Completion failed',
+
+  'process.title_details': 'Service details',
+  'process.not_found': 'Process not found',
+  'process.not_found_action': 'Catalog lookup',
+  'process.not_found_desc': 'No process definition for `{id}`.',
+  'process.steps_completed': 'Steps completed: {completed}/{total}',
+  'process.ready': '{percent}% ready',
+  'process.start_new_submission': 'Start new submission',
+  'process.back_to_services': 'Back to services',
+  'process.checklist': 'Checklist',
+  'process.required_documents': 'Required documents',
+  'process.available': 'Available',
+  'process.missing': 'Missing',
+  'process.linked_from_registry': 'Linked from government records',
+  'process.required_for_submission': 'Document is required for submission.',
+  'process.open_wallet': 'Open wallet',
+  'process.flow': 'Flow',
+  'process.step': 'Step {index}. {title}',
+  'process.ready_now': 'Ready now',
+  'process.locked': 'Locked',
+  'process.step_completed_desc': 'Step has been completed and recorded.',
+  'process.step_ready_desc': 'This step is active and can be completed now.',
+  'process.step_locked_desc': 'Complete previous step to unlock this action.',
+  'process.blocker_api': 'API unavailable. Process flow is in offline mode.',
+
+  'admin.console_title': 'Integration Console',
+  'admin.console_action': 'Demo mode',
+  'admin.endpoint': 'Endpoint',
+  'admin.purpose': 'Purpose',
+  'admin.status': 'Status',
+  'admin.api_unavailable': 'API unavailable or unauthorized',
+  'admin.blocked': 'Blocked',
+  'admin.ready': 'Ready',
+  'admin.system_health': 'System Health',
+  'admin.system_health_action': 'eIDAS-ready',
+  'admin.integration_api': 'Integration API',
+  'admin.unavailable': 'Unavailable',
+
+  'ai.title': 'AI Civic Assistant',
+  'ai.action': 'English / Greek / Russian / Ukrainian / Hindi / Arabic',
+  'ai.default_question': 'How do I renew temporary residence in Cyprus?',
+  'ai.unavailable': 'Assistant unavailable. Try again when API is online.',
+  'ai.next_required': 'Next required action: {value}',
+  'ai.default_next_action': 'Upload proof of address',
+
+  'upload.aria': 'Upload document',
+  'upload.choose_type': 'Choose document type',
+  'upload.scan_document': 'Scan document',
+  'upload.verify_details': 'Verify details',
+  'upload.select_type_first': 'Select type first, then place document inside camera frame.',
+  'upload.start_scan': 'Start camera scan',
+  'upload.place_inside': 'Place document inside this area',
+  'upload.prefilled_hint': 'Government-prefilled data detected. Please review and confirm, editing is disabled.',
+  'upload.nationality': 'Nationality',
+  'upload.scan_confidence': 'Scan confidence: {value}%',
+  'upload.adding_document': 'Adding document...',
+  'upload.confirm_add': 'Confirm and add',
+  'upload.rescan': 'Rescan',
+  'upload.add_new_document': 'Add New Document',
+  'upload.scan_align': 'Align your document inside the frame.',
+  'upload.camera_unavailable': 'Camera access denied or unavailable.',
+  'upload.scan_in_progress': 'Scanning... keep document centered and fully visible.',
+  'upload.scan_captured': 'Document data captured. Please verify details.',
+  'upload.document_data_fallback': 'document data',
+  'upload.scan_detected': 'Detected {value}. Hold still to confirm...',
+  'upload.scan_read_error': 'Could not read this frame. Keep document in the guide area.',
+  'upload.scan_initializing': 'Initializing camera and OCR...',
+  'upload.document_number_required': 'Document number is required.',
+  'upload.failed': 'Upload failed. Please try again.'
+};
+
+const extraEl: Dictionary = {
+  'locale.hindi': 'Χίντι',
+  'locale.arabic': 'Αραβικά',
+  'app.title': 'Cyprus Services',
+  'app.subtitle': 'Έγγραφα, υπηρεσίες, υπενθυμίσεις και βοηθός σε ένα μέρος.',
+  'topbar.hi_name': 'Γεια σου, {name}',
+  'topbar.no_notifications': 'Δεν υπάρχουν ειδοποιήσεις',
+  'topbar.open_notifications': 'Άνοιγμα ειδοποιήσεων',
+  'topbar.notifications_open': 'Οι ειδοποιήσεις είναι ανοιχτές',
+  'common.language': 'Γλώσσα',
+  'common.search_results': 'Αποτελέσματα αναζήτησης',
+  'common.loading': 'Φόρτωση...',
+  'common.no_attachment': 'Χωρίς συνημμένο',
+  'common.save': 'Αποθήκευση',
+  'common.confirm': 'Επιβεβαίωση',
+  'common.submit_reply': 'Αποστολή απάντησης',
+  'common.online': 'Ηλεκτρονικά',
+  'common.in_person': 'Με φυσική παρουσία',
+  'common.hybrid': 'Υβριδικό',
+  'common.na': 'Μ/Δ',
+  'services.catalog_title': 'Κατάλογος υπηρεσιών',
+  'services.category': 'Κατηγορία',
+  'services.filter_all_categories': 'Όλες οι κατηγορίες',
+  'services.filter_online_only': 'Μόνο online',
+  'services.filter_requires_appointment': 'Απαιτεί ραντεβού',
+  'services.filter_requires_payment': 'Απαιτεί πληρωμή',
+  'services.start_request': 'Έναρξη αιτήματος',
+  'requests.title': 'Αιτήματα / Υποθέσεις',
+  'inbox.title': 'Ασφαλή εισερχόμενα',
+  'appointments.title': 'Ραντεβού',
+  'notifications.title': 'Ειδοποιήσεις',
+  'settings.title': 'Ρυθμίσεις',
+  'profile.title': 'Προφίλ',
+  'consents.title': 'Συναινέσεις',
+  'security.title': 'Δραστηριότητα ασφάλειας',
+  'verify.title': 'Επαληθευτής',
+  'verify.expired': 'Έληξε'
+};
+
+const extraRu: Dictionary = {
+  'locale.hindi': 'Хинди',
+  'locale.arabic': 'Арабский',
+  'app.title': 'Cyprus Services',
+  'app.subtitle': 'Документы, сервисы, напоминания и помощник в одном месте.',
+  'topbar.hi_name': 'Привет, {name}',
+  'topbar.no_notifications': 'Пока нет уведомлений',
+  'topbar.open_notifications': 'Открыть уведомления',
+  'topbar.notifications_open': 'Уведомления открыты',
+  'common.language': 'Язык',
+  'common.search_results': 'Результаты поиска',
+  'common.loading': 'Загрузка...',
+  'common.no_attachment': 'Без вложения',
+  'common.save': 'Сохранить',
+  'common.confirm': 'Подтвердить',
+  'common.submit_reply': 'Отправить ответ',
+  'common.online': 'Онлайн',
+  'common.in_person': 'Лично',
+  'common.hybrid': 'Гибрид',
+  'common.na': 'Н/Д',
+  'services.catalog_title': 'Каталог сервисов',
+  'services.category': 'Категория',
+  'services.filter_all_categories': 'Все категории',
+  'services.filter_online_only': 'Только онлайн',
+  'services.filter_requires_appointment': 'Требуется запись',
+  'services.filter_requires_payment': 'Требуется оплата',
+  'services.start_request': 'Начать запрос',
+  'requests.title': 'Запросы / Кейсы',
+  'inbox.title': 'Безопасные входящие',
+  'appointments.title': 'Записи',
+  'notifications.title': 'Уведомления',
+  'settings.title': 'Настройки',
+  'profile.title': 'Профиль',
+  'consents.title': 'Согласия',
+  'security.title': 'Активность безопасности',
+  'verify.title': 'Проверка',
+  'verify.expired': 'Истекло'
+};
+
+const extraUk: Dictionary = {
+  'locale.hindi': 'Гінді',
+  'locale.arabic': 'Арабська',
+  'app.title': 'Cyprus Services',
+  'app.subtitle': 'Документи, послуги, нагадування та помічник в одному місці.',
+  'topbar.hi_name': 'Привіт, {name}',
+  'topbar.no_notifications': 'Сповіщень поки немає',
+  'topbar.open_notifications': 'Відкрити сповіщення',
+  'topbar.notifications_open': 'Сповіщення відкриті',
+  'common.language': 'Мова',
+  'common.search_results': 'Результати пошуку',
+  'common.loading': 'Завантаження...',
+  'common.no_attachment': 'Без вкладення',
+  'common.save': 'Зберегти',
+  'common.confirm': 'Підтвердити',
+  'common.submit_reply': 'Надіслати відповідь',
+  'common.online': 'Онлайн',
+  'common.in_person': 'Особисто',
+  'common.hybrid': 'Гібрид',
+  'common.na': 'Н/Д'
+};
+
+const extraHi: Dictionary = {
+  'nav.feed': 'मुख्य पृष्ठ',
+  'nav.documents': 'दस्तावेज़',
+  'nav.services': 'सेवाएं',
+  'nav.timeline': 'अनुरोध',
+  'nav.inbox': 'इनबॉक्स',
+  'nav.appointments': 'अपॉइंटमेंट',
+  'nav.civic_card': 'सिविक कार्ड',
+  'nav.menu': 'मेनू',
+  'topbar.updates': 'आपके पास सक्रिय नागरिक अपडेट हैं',
+  'topbar.notifications': 'सूचनाएं',
+  'locale.english': 'English',
+  'locale.greek': 'Greek',
+  'locale.russian': 'Russian',
+  'locale.ukrainian': 'Ukrainian',
+  'locale.hindi': 'Hindi',
+  'locale.arabic': 'Arabic',
+  'common.today': 'आज',
+  'common.this_week': 'इस सप्ताह',
+  'common.earlier': 'पहले',
+  'common.open': 'खोलें',
+  'common.back': 'वापस',
+  'common.cancel': 'रद्द करें',
+  'common.continue': 'जारी रखें',
+  'common.submit': 'सबमिट करें',
+  'common.close': 'बंद करें',
+  'common.search': 'खोज',
+  'common.reset': 'रीसेट',
+  'status.draft': 'ड्राफ्ट',
+  'status.submitted': 'सबमिट',
+  'status.in_review': 'समीक्षा में',
+  'status.approved': 'स्वीकृत',
+  'status.rejected': 'अस्वीकृत',
+  'status.appointment_required': 'अपॉइंटमेंट आवश्यक',
+  'status.completed': 'पूर्ण',
+  'status.valid': 'मान्य',
+  'status.invalid': 'अमान्य'
+};
+
+const extraAr: Dictionary = {
+  'nav.feed': 'الرئيسية',
+  'nav.documents': 'المستندات',
+  'nav.services': 'الخدمات',
+  'nav.timeline': 'الطلبات',
+  'nav.inbox': 'الوارد',
+  'nav.appointments': 'المواعيد',
+  'nav.civic_card': 'البطاقة المدنية',
+  'nav.menu': 'القائمة',
+  'topbar.updates': 'لديك تحديثات مدنية نشطة',
+  'topbar.notifications': 'الإشعارات',
+  'locale.english': 'English',
+  'locale.greek': 'Greek',
+  'locale.russian': 'Russian',
+  'locale.ukrainian': 'Ukrainian',
+  'locale.hindi': 'Hindi',
+  'locale.arabic': 'Arabic',
+  'common.today': 'اليوم',
+  'common.this_week': 'هذا الأسبوع',
+  'common.earlier': 'أقدم',
+  'common.open': 'فتح',
+  'common.back': 'رجوع',
+  'common.cancel': 'إلغاء',
+  'common.continue': 'متابعة',
+  'common.submit': 'إرسال',
+  'common.close': 'إغلاق',
+  'common.search': 'بحث',
+  'common.reset': 'إعادة ضبط',
+  'status.draft': 'مسودة',
+  'status.submitted': 'تم الإرسال',
+  'status.in_review': 'قيد المراجعة',
+  'status.approved': 'مقبول',
+  'status.rejected': 'مرفوض',
+  'status.appointment_required': 'موعد مطلوب',
+  'status.completed': 'مكتمل',
+  'status.valid': 'صالح',
+  'status.invalid': 'غير صالح'
+};
+
+const selectorLocaleLabels: Dictionary = {
+  'locale.english': 'English',
+  'locale.greek': 'Greek',
+  'locale.russian': 'Russian',
+  'locale.ukrainian': 'Ukrainian',
+  'locale.hindi': 'Hindi',
+  'locale.arabic': 'Arabic'
+};
+
+const autoEl = autoElRaw as Dictionary;
+const autoRu = autoRuRaw as Dictionary;
+const autoUk = autoUkRaw as Dictionary;
+const autoHi = autoHiRaw as Dictionary;
+const autoAr = autoArRaw as Dictionary;
+
+const en: Dictionary = { ...baseEn, ...extraEn };
+const el: Dictionary = { ...baseEl, ...extraEn, ...extraEl, ...autoEl, ...selectorLocaleLabels };
+const ru: Dictionary = { ...baseRu, ...extraEn, ...extraRu, ...autoRu, ...selectorLocaleLabels };
+const uk: Dictionary = { ...baseRu, ...baseUk, ...extraEn, ...extraUk, ...autoUk, ...selectorLocaleLabels };
+const hi: Dictionary = { ...baseEn, ...extraEn, ...extraHi, ...autoHi, ...selectorLocaleLabels };
+const ar: Dictionary = { ...baseEn, ...extraEn, ...extraAr, ...autoAr, ...selectorLocaleLabels };
+
+export const SUPPORTED_LOCALES: LocaleCode[] = ['en', 'el', 'ru', 'uk', 'hi', 'ar'];
+export const DEFAULT_LOCALE: LocaleCode = 'en';
+export const LOCALE_STORAGE_KEY = 'cyprus-services.locale';
+
+export const LOCALE_INTL: Record<LocaleCode, string> = {
+  en: 'en-US',
+  el: 'el-GR',
+  ru: 'ru-RU',
+  uk: 'uk-UA',
+  hi: 'hi-IN',
+  ar: 'ar-EG'
+};
+
+const RTL_LOCALES = new Set<LocaleCode>(['ar']);
+export const messages: Record<LocaleCode, Dictionary> = { en, el, ru, uk, hi, ar };
+const dictionaries = messages;
+const missingWarnings = new Set<string>();
+
+function warnMissing(locale: LocaleCode, key: string) {
+  if (process.env.NODE_ENV === 'production') return;
+  const id = `${locale}:${key}`;
+  if (missingWarnings.has(id)) return;
+  missingWarnings.add(id);
+  // eslint-disable-next-line no-console
+  console.warn(`[i18n] Missing key "${key}" for locale "${locale}", falling back to English.`);
+}
+
+function interpolate(template: string, vars: TemplateVars = {}) {
+  return template.replace(/\{(\w+)\}/g, (_, name: string) => String(vars[name] ?? `{${name}}`));
+}
+
+export function isSupportedLocale(input: string | null | undefined): input is LocaleCode {
+  return Boolean(input && SUPPORTED_LOCALES.includes(input as LocaleCode));
+}
+
+export function normalizeLocale(input: string | null | undefined, fallback: LocaleCode = DEFAULT_LOCALE): LocaleCode {
+  return isSupportedLocale(input) ? input : fallback;
+}
+
+export function isRtlLocale(locale: LocaleCode) {
+  return RTL_LOCALES.has(locale);
+}
+
+export function localeDirection(locale: LocaleCode): 'ltr' | 'rtl' {
+  return isRtlLocale(locale) ? 'rtl' : 'ltr';
+}
+
+export function t(locale: LocaleCode, key: string, fallback?: string) {
+  const value = dictionaries[locale]?.[key];
+  if (value) return value;
+
+  const english = dictionaries.en[key];
+  if (english) {
+    warnMissing(locale, key);
+    return english;
+  }
+  return fallback ?? key;
+}
+
+export function ti(locale: LocaleCode, key: string, vars: TemplateVars = {}, fallback?: string) {
+  return interpolate(t(locale, key, fallback), vars);
+}
+
+export function localeLabel(_locale: LocaleCode, target: LocaleCode) {
+  const labels: Record<LocaleCode, string> = {
+    en: 'English',
+    el: 'Greek',
+    ru: 'Russian',
+    uk: 'Ukrainian',
+    hi: 'Hindi',
+    ar: 'Arabic'
+  };
+  return labels[target];
+}
+
+export function formatDateValue(
+  locale: LocaleCode,
+  value: string | number | Date,
+  options?: Intl.DateTimeFormatOptions
+) {
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value);
+  return new Intl.DateTimeFormat(LOCALE_INTL[locale], options).format(date);
+}
+
+export function formatDateTimeValue(locale: LocaleCode, value: string | number | Date, options?: Intl.DateTimeFormatOptions) {
+  return formatDateValue(locale, value, {
+    year: 'numeric',
+    month: 'short',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    ...options
+  });
+}
+
+export function formatNumberValue(locale: LocaleCode, value: number, options?: Intl.NumberFormatOptions) {
+  return new Intl.NumberFormat(LOCALE_INTL[locale], options).format(value);
+}
+
+const serviceRequirementMap: Record<string, string> = {
+  Passport: 'service.requirement.passport',
+  'Residence permit': 'service.requirement.residence_permit',
+  'Proof of address': 'service.requirement.proof_of_address',
+  'Health insurance': 'service.requirement.health_insurance',
+  'Student ID or enrollment proof': 'service.requirement.student_id_or_enrollment',
+  'Tax ID': 'service.requirement.tax_id',
+  'Company document': 'service.requirement.company_document',
+  'Signed board resolution': 'service.requirement.signed_board_resolution',
+  'Old ID or passport': 'service.requirement.old_id_or_passport',
+  'Biometric photo': 'service.requirement.biometric_photo',
+  'Health insurance document': 'service.requirement.health_insurance_document',
+  'Address confirmation': 'service.requirement.address_confirmation'
+};
+
+const serviceStepMap: Record<string, string> = {
+  'Confirm identity': 'service.step.confirm_identity',
+  'Attach required documents': 'service.step.attach_required_documents',
+  'Choose submission method': 'service.step.choose_submission_method',
+  'Pay fee': 'service.step.pay_fee',
+  'Receive decision': 'service.step.receive_decision',
+  'Confirm profile data': 'service.step.confirm_profile_data',
+  'Attach student document': 'service.step.attach_student_document',
+  'Submit request': 'service.step.submit_request',
+  'Receive digital confirmation': 'service.step.receive_digital_confirmation',
+  'Validate tax profile': 'service.step.validate_tax_profile',
+  'Attach supporting files': 'service.step.attach_supporting_files',
+  'Submit declaration': 'service.step.submit_declaration',
+  'Download certificate': 'service.step.download_certificate',
+  'Confirm representative': 'service.step.confirm_representative',
+  'Attach legal files': 'service.step.attach_legal_files',
+  'Book registry slot': 'service.step.book_registry_slot',
+  'Submit in person': 'service.step.submit_in_person',
+  'Receive confirmation': 'service.step.receive_confirmation',
+  'Book appointment': 'service.step.book_appointment',
+  'Capture biometrics': 'service.step.capture_biometrics',
+  'Collect document': 'service.step.collect_document',
+  'Review profile data': 'service.step.review_profile_data',
+  'Attach proof': 'service.step.attach_proof',
+  'Receive update result': 'service.step.receive_update_result'
+};
+
+const authorityMap: Record<string, string> = {
+  'Migration Department': 'issuer.migration_department',
+  'Tax Department': 'issuer.tax_department',
+  University: 'issuer.university_of_cyprus',
+  'Police verification system': 'inbox.police_verification_system',
+  'Border Checkpoint': 'authority.border_checkpoint',
+  Police: 'wallet.verifier_police',
+  'Transport Gate': 'wallet.verifier_transport_gate',
+  'University Portal': 'wallet.verifier_university_portal',
+  'Citizen App': 'wallet.verifier_citizen_app',
+  'Cyprus Services Portal': 'wallet.verifier_cyprus_portal'
+};
+
+const attachmentTitleMap: Record<string, string> = {
+  Passport: 'doc.passport',
+  'Residence Permit': 'doc.residence_permit',
+  'Tax ID': 'doc.tax_id',
+  'Student ID': 'doc.student_id',
+  'Health Insurance': 'doc.health_insurance',
+  'Proof of Address': 'doc.proof_of_address',
+  'Company Registry Extract': 'doc.company_document',
+  'Company Document': 'doc.company_document'
+};
+
+export function localizeServiceTitle(locale: LocaleCode, slug: string, fallback: string) {
+  return t(locale, `service.${slug}.title`, fallback);
+}
+
+export function localizeServiceOutcome(locale: LocaleCode, slug: string, fallback: string) {
+  return t(locale, `service.${slug}.outcome`, fallback);
+}
+
+export function localizeServiceEligibility(locale: LocaleCode, slug: string, fallback: string) {
+  return t(locale, `service.${slug}.eligibility`, fallback);
+}
+
+export function localizeServiceRequirement(locale: LocaleCode, requirement: string) {
+  const key = serviceRequirementMap[requirement];
+  return key ? t(locale, key, requirement) : requirement;
+}
+
+export function localizeServiceStep(locale: LocaleCode, step: string) {
+  const key = serviceStepMap[step];
+  return key ? t(locale, key, step) : step;
+}
+
+export function localizeAuthority(locale: LocaleCode, authority: string) {
+  const key = authorityMap[authority];
+  if (!key) return authority;
+  return t(locale, key, authority);
+}
+
+export function localizeRequestTimelineEvent(locale: LocaleCode, title: string) {
+  if (title === 'Request submitted') return t(locale, 'timeline.request_submitted');
+  if (title === 'Request moved to review') return t(locale, 'timeline.request_in_review');
+  if (title === 'Request withdrawn by citizen') return t(locale, 'timeline.request_withdrawn');
+  if (title === 'Additional information submitted') return t(locale, 'timeline.additional_info_submitted');
+  if (title === 'Appointment booked') return t(locale, 'timeline.appointment_booked');
+  if (title === 'Request updated') return t(locale, 'timeline.request_updated');
+  if (title === 'Verification event logged') return t(locale, 'timeline.verification_logged');
+
+  const referenceMatch = title.match(/^Request ([A-Z0-9-]+) submitted$/);
+  if (referenceMatch) {
+    return ti(locale, 'timeline.request_reference_submitted', { reference: referenceMatch[1] });
+  }
+
+  const statusMatch = title.match(/^Status changed to (.+)$/);
+  if (statusMatch) {
+    return ti(locale, 'timeline.status_changed', { status: statusMatch[1] });
+  }
+
+  const demoMatch = title.match(/^Demo update: (.+)$/);
+  if (demoMatch) {
+    return ti(locale, 'requests.demo_update', { status: demoMatch[1] });
+  }
+
+  return title;
+}
+
+export function localizeNotificationTitle(locale: LocaleCode, title: string) {
+  if (title === 'View request') return t(locale, 'notification.view_request');
+  if (title === 'Open message') return t(locale, 'notification.open_message');
+  if (title === 'Track request') return t(locale, 'notification.track_request');
+  if (title === 'Book appointment') return t(locale, 'notification.book_appointment');
+  if (title === 'View appointments') return t(locale, 'notification.view_appointments');
+  if (title === 'View timeline') return t(locale, 'notification.view_timeline');
+  if (title === 'Open security') return t(locale, 'notification.open_security');
+  if (title === 'Renew now') return t(locale, 'dashboard.renew_now');
+
+  if (title === 'Residence Permit expires in 10 days') return t(locale, 'notification.residence_expiring_title');
+  if (title === 'Verification completed') return t(locale, 'notification.verification_completed');
+  if (title === 'Appointment required') return t(locale, 'notification.appointment_required_title');
+  if (title === 'Appointment confirmed') return t(locale, 'notification.appointment_confirmed_title');
+  if (title === 'Appointment rescheduled') return t(locale, 'notification.appointment_rescheduled_title');
+  if (title === 'Document shared') return t(locale, 'notification.document_shared_title');
+  if (title === 'Your Civic Card was verified by Police') return t(locale, 'demo.notification.police_verified_title');
+  if (title === 'Border crossing mode started') return t(locale, 'demo.notification.crossing_started_title');
+  if (title === 'Border crossing cleared') return t(locale, 'demo.notification.border_cleared_title');
+
+  const reviewMatch = title.match(/^Request ([A-Z0-9-]+) moved to review$/);
+  if (reviewMatch) return ti(locale, 'notification.request_review_title', { reference: reviewMatch[1] });
+
+  const submittedMatch = title.match(/^Request submitted: ([A-Z0-9-]+)$/);
+  if (submittedMatch) return ti(locale, 'notification.request_submitted_title', { reference: submittedMatch[1] });
+
+  const statusMatch = title.match(/^([A-Z0-9-]+) status updated$/);
+  if (statusMatch) return ti(locale, 'notification.status_updated_title', { reference: statusMatch[1] });
+
+  const withdrawnMatch = title.match(/^([A-Z0-9-]+) withdrawn$/);
+  if (withdrawnMatch) return ti(locale, 'notification.request_withdrawn_title', { reference: withdrawnMatch[1] });
+
+  const newMessageMatch = title.match(/^New message from (.+)$/);
+  if (newMessageMatch) {
+    return ti(locale, 'notification.new_message_title', { authority: localizeAuthority(locale, newMessageMatch[1]) });
+  }
+
+  return title;
+}
+
+export function localizeNotificationBody(locale: LocaleCode, body: string) {
+  if (body === 'Renew now to avoid service interruption.') return t(locale, 'notification.residence_expiring_body');
+  if (body === 'Additional address proof requested.') return t(locale, 'notification.additional_address');
+  if (body === 'The request was withdrawn and closed.') return t(locale, 'notification.request_withdrawn_body');
+  if (body === 'Choose a time slot to continue processing your request.') return t(locale, 'notification.appointment_required_body');
+  if (body === 'Verification event logged in your timeline.') return t(locale, 'demo.notification.police_verified_body');
+  if (body === 'Checkpoint verification started. Open authority view.') return t(locale, 'demo.notification.crossing_started_body');
+  if (body === 'Checkpoint accepted your proof. Status: Cleared.') return t(locale, 'demo.notification.border_cleared_body');
+
+  const inProcessingMatch = body.match(/^(.+) is now in processing\.$/);
+  if (inProcessingMatch) return ti(locale, 'notification.request_processing_body', { service: inProcessingMatch[1] });
+
+  const reviewMatch = body.match(/^(.+) started processing your case\.$/);
+  if (reviewMatch) return ti(locale, 'notification.request_review_body', { authority: localizeAuthority(locale, reviewMatch[1]) });
+
+  const statusMatch = body.match(/^New status: (.+)$/);
+  if (statusMatch) return ti(locale, 'notification.status_updated_body', { status: statusMatch[1] });
+
+  const proofMatch = body.match(/^(.+) checked your proof successfully\.$/);
+  if (proofMatch) return ti(locale, 'notification.verification_completed_body', { authority: localizeAuthority(locale, proofMatch[1]) });
+
+  const appointmentOnMatch = body.match(/^(.+) on (.+)$/);
+  if (appointmentOnMatch) {
+    return ti(locale, 'notification.appointment_confirmed_body', {
+      title: appointmentOnMatch[1],
+      date: appointmentOnMatch[2]
+    });
+  }
+
+  const appointmentMovedMatch = body.match(/^(.+) moved to (.+)$/);
+  if (appointmentMovedMatch) {
+    return ti(locale, 'notification.appointment_rescheduled_body', {
+      title: appointmentMovedMatch[1],
+      date: appointmentMovedMatch[2]
+    });
+  }
+
+  const sharedUntilMatch = body.match(/^Secure proof link active until (.+)$/);
+  if (sharedUntilMatch) return ti(locale, 'notification.document_shared_body', { time: sharedUntilMatch[1] });
+
+  return body;
+}
+
+export function localizeMessageBody(locale: LocaleCode, body: string) {
+  const attachReqMatch = body.match(/^Please attach updated address confirmation for request ([A-Z0-9-]+)\.$/);
+  if (attachReqMatch) {
+    return ti(locale, 'inbox.request_address_update', { reference: attachReqMatch[1] }, body);
+  }
+  if (body === 'Tax clearance request was received and is being processed.') {
+    return t(locale, 'inbox.tax_request_received', body);
+  }
+  if (body === 'Student status verification updated.') {
+    return t(locale, 'inbox.student_status_updated', body);
+  }
+  if (body === 'Latest identity verification was successful.') {
+    return t(locale, 'inbox.identity_verification_success', body);
+  }
+  const requestReceivedMatch = body.match(/^Your request ([A-Z0-9-]+) has been received\.$/);
+  if (requestReceivedMatch) {
+    return ti(locale, 'inbox.request_received', { reference: requestReceivedMatch[1] }, body);
+  }
+  if (body === 'Demo authority update: please confirm your latest address document.') {
+    return t(locale, 'requests.demo_authority_update', body);
+  }
+  const attachedMatch = body.match(/^Attached additional document: (.+)$/);
+  if (attachedMatch) {
+    const title = attachedMatch[1].trim();
+    const key = attachmentTitleMap[title];
+    const localizedTitle = key ? t(locale, key, title) : title;
+    return ti(locale, 'requests.attached_message', { title: localizedTitle }, body);
+  }
+  return body;
+}

@@ -1,0 +1,40 @@
+{
+  "name": "civic-infrastructure-layer",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:stop": "pkill -f \"tsx watch src/main.ts\" 2>/dev/null || true; pkill -f \"next dev -p 3000\" 2>/dev/null || true; (lsof -nP -iTCP:3000 -sTCP:LISTEN -t; lsof -nP -iTCP:4000 -sTCP:LISTEN -t) 2>/dev/null | sort -u | xargs kill -9 2>/dev/null || true",
+    "dev": "npm run dev:stop && (npm run dev -w @civic/api & npm run dev -w @civic/web)",
+    "web:daemon:start": "bash scripts/web-daemon.sh start",
+    "web:daemon:stop": "bash scripts/web-daemon.sh stop",
+    "web:daemon:restart": "bash scripts/web-daemon.sh restart",
+    "web:daemon:status": "bash scripts/web-daemon.sh status",
+    "web:daemon:logs": "bash scripts/web-daemon.sh logs",
+    "web:service:install": "bash scripts/web-service-macos.sh install",
+    "web:service:start": "bash scripts/web-service-macos.sh start",
+    "web:service:stop": "bash scripts/web-service-macos.sh stop",
+    "web:service:restart": "bash scripts/web-service-macos.sh restart",
+    "web:service:status": "bash scripts/web-service-macos.sh status",
+    "web:service:logs": "bash scripts/web-service-macos.sh logs",
+    "web:service:uninstall": "bash scripts/web-service-macos.sh uninstall",
+    "web:screen:start": "bash scripts/web-screen.sh start",
+    "web:screen:stop": "bash scripts/web-screen.sh stop",
+    "web:screen:restart": "bash scripts/web-screen.sh restart",
+    "web:screen:status": "bash scripts/web-screen.sh status",
+    "web:screen:logs": "bash scripts/web-screen.sh logs",
+    "web:clean": "bash -lc \"rm -rf apps/web/.next apps/web/.next-dev apps/web/.next-prod apps/web/.next_cache_* apps/web/.next-dev_cache_* apps/web/.next-prod_cache_*\"",
+    "web:smoke": "bash scripts/web-smoke.sh",
+    "web:share": "bash scripts/web-share.sh",
+    "web:share:ssh": "bash scripts/web-share-ssh.sh",
+    "build": "npm run build -w @civic/api && npm run build -w @civic/web",
+    "lint": "npm run lint -w @civic/api && npm run lint -w @civic/web",
+    "typecheck": "npm run typecheck -w @civic/api && npm run typecheck -w @civic/web"
+  },
+  "dependencies": {
+    "@prisma/client": "^7.4.0",
+    "prisma": "^7.4.0"
+  }
+}

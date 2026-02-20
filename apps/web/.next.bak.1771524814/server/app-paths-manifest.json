@@ -1,0 +1,10 @@
+{
+  "/page": "app/page.js",
+  "/wallet/page": "app/wallet/page.js",
+  "/services/page": "app/services/page.js",
+  "/timeline/page": "app/timeline/page.js",
+  "/appointments/page": "app/appointments/page.js",
+  "/inbox/page": "app/inbox/page.js",
+  "/civic-card/page": "app/civic-card/page.js",
+  "/settings/page": "app/settings/page.js"
+}

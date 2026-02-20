@@ -1,0 +1,131 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  resident
+  advisor
+  admin
+}
+
+enum DocumentStatus {
+  active
+  deleted
+}
+
+enum ProcessStatus {
+  not_started
+  in_progress
+  submitted
+  completed
+}
+
+enum Severity {
+  informational
+  important
+  critical
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  role      Role     @default(resident)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  documents Document[]
+  processes ProcessInstance[]
+  timeline  TimelineEvent[]
+  consents  Consent[]
+  deletions DeletionRequest[]
+}
+
+model Document {
+  id               String         @id @default(cuid())
+  ownerId          String
+  category         String
+  filename         String
+  issueDate        DateTime?
+  expiryDate       DateTime?
+  issuingAuthority String?
+  version          Int            @default(1)
+  status           DocumentStatus @default(active)
+  metadata         Json?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  owner User @relation(fields: [ownerId], references: [id])
+}
+
+model ProcessDefinition {
+  id                String   @id
+  country           String
+  name              String
+  steps             String[]
+  requiredDocuments String[]
+  estimatedDays     Int
+}
+
+model ProcessInstance {
+  id          String         @id @default(cuid())
+  ownerId     String
+  processId   String
+  status      ProcessStatus @default(not_started)
+  completedSteps String[]   @default([])
+  currentStep Int           @default(0)
+  startedAt   DateTime?
+  submittedAt DateTime?
+  completedAt DateTime?
+  updatedAt   DateTime      @updatedAt
+  createdAt   DateTime      @default(now())
+
+  owner User @relation(fields: [ownerId], references: [id])
+}
+
+model TimelineEvent {
+  id        String   @id @default(cuid())
+  ownerId   String
+  title     String
+  dueDate   DateTime
+  severity  Severity
+  source    String
+  createdAt DateTime @default(now())
+
+  owner User @relation(fields: [ownerId], references: [id])
+}
+
+model AuditEvent {
+  id        String   @id @default(cuid())
+  actorId   String?
+  actorRole Role
+  action    String
+  target    String
+  metadata  Json?
+  createdAt DateTime @default(now())
+}
+
+model Consent {
+  id        String   @id @default(cuid())
+  ownerId   String
+  scope     String[]
+  status    String
+  createdAt DateTime @default(now())
+
+  owner User @relation(fields: [ownerId], references: [id])
+}
+
+model DeletionRequest {
+  id        String   @id @default(cuid())
+  ownerId   String
+  reason    String?
+  status    String   @default("pending")
+  createdAt DateTime @default(now())
+
+  owner User @relation(fields: [ownerId], references: [id])
+}

@@ -1,0 +1,92 @@
+import type { ServiceDefinition } from '../models/types';
+
+export const SERVICE_DEFINITIONS: ServiceDefinition[] = [
+  {
+    slug: 'temporary-residence-renewal',
+    title: 'Temporary Residence Permit Renewal',
+    category: 'migration',
+    mode: 'hybrid',
+    outcome: 'Extended temporary legal stay in Cyprus.',
+    eligibility: 'Residents with a currently valid or recently expired permit.',
+    requirements: ['Passport', 'Residence permit', 'Proof of address', 'Health insurance'],
+    steps: ['Confirm identity', 'Attach required documents', 'Choose submission method', 'Pay fee', 'Receive decision'],
+    expectedDays: 21,
+    requiresAppointment: true,
+    requiresPayment: true,
+    feeEur: 70,
+    mostUsed: true,
+    recommended: true
+  },
+  {
+    slug: 'student-status-verification',
+    title: 'Student Status Verification',
+    category: 'education',
+    mode: 'online',
+    outcome: 'Official proof of active student status for discounts and services.',
+    eligibility: 'Students enrolled in recognized institutions.',
+    requirements: ['Passport', 'Student ID or enrollment proof'],
+    steps: ['Confirm profile data', 'Attach student document', 'Submit request', 'Receive digital confirmation'],
+    expectedDays: 3,
+    requiresAppointment: false,
+    requiresPayment: false,
+    feeEur: 0,
+    mostUsed: true
+  },
+  {
+    slug: 'tax-clearance-certificate',
+    title: 'Tax Clearance Certificate',
+    category: 'taxes',
+    mode: 'online',
+    outcome: 'Tax clearance certificate for legal and business procedures.',
+    eligibility: 'Tax residents with no outstanding filings.',
+    requirements: ['Tax ID', 'Passport'],
+    steps: ['Validate tax profile', 'Attach supporting files', 'Submit declaration', 'Download certificate'],
+    expectedDays: 5,
+    requiresAppointment: false,
+    requiresPayment: true,
+    feeEur: 15
+  },
+  {
+    slug: 'company-record-update',
+    title: 'Company Registry Record Update',
+    category: 'business',
+    mode: 'in_person',
+    outcome: 'Updated official company record in registry.',
+    eligibility: 'Directors or authorized representatives.',
+    requirements: ['Company document', 'Passport', 'Signed board resolution'],
+    steps: ['Confirm representative', 'Attach legal files', 'Book registry slot', 'Submit in person', 'Receive confirmation'],
+    expectedDays: 14,
+    requiresAppointment: true,
+    requiresPayment: true,
+    feeEur: 40
+  },
+  {
+    slug: 'national-id-reissue',
+    title: 'National ID Reissue',
+    category: 'identity',
+    mode: 'in_person',
+    outcome: 'Reissued identity document.',
+    eligibility: 'Citizens requiring replacement or renewal.',
+    requirements: ['Old ID or passport', 'Biometric photo'],
+    steps: ['Confirm identity', 'Book appointment', 'Capture biometrics', 'Pay fee', 'Collect document'],
+    expectedDays: 10,
+    requiresAppointment: true,
+    requiresPayment: true,
+    feeEur: 30,
+    recommended: true
+  },
+  {
+    slug: 'gesy-insurance-update',
+    title: 'GESY Insurance Update',
+    category: 'healthcare',
+    mode: 'online',
+    outcome: 'Updated healthcare insurance record in GESY.',
+    eligibility: 'Residents with active healthcare coverage.',
+    requirements: ['Health insurance document', 'Address confirmation'],
+    steps: ['Review profile data', 'Attach proof', 'Submit request', 'Receive update result'],
+    expectedDays: 4,
+    requiresAppointment: false,
+    requiresPayment: false,
+    feeEur: 0
+  }
+];
