@@ -85,7 +85,7 @@ export const DEMO_SCENARIOS: Record<string, DemoScenario> = {
         id: 'tour-step-3',
         titleKey: 'demo.tour.step3.title',
         bodyKey: 'demo.tour.step3.body',
-        target: '[data-tour="drawer-share-controls-title"]'
+        target: '[data-tour="drawer-share-controls"]'
       },
       {
         id: 'tour-step-4',
@@ -112,6 +112,7 @@ export const DEMO_SCENARIOS: Record<string, DemoScenario> = {
         id: 'tour-step-6',
         titleKey: 'demo.tour.step6.title',
         bodyKey: 'demo.tour.step6.body',
+        target: '[data-tour="verify-result-card"]',
         actions: [{ type: 'goTo', path: '/verify?token={token}' }]
       },
       {

@@ -30,6 +30,10 @@ function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
 }
 
+function overlapAmount(startA: number, endA: number, startB: number, endB: number) {
+  return Math.max(0, Math.min(endA, endB) - Math.max(startA, startB));
+}
+
 function getViewportMetrics(): ViewportMetrics {
   if (typeof window === 'undefined') {
     return {
@@ -89,7 +93,10 @@ export function GuidedTourOverlay() {
   const pathname = usePathname();
   const [targetRect, setTargetRect] = useState<RectLike | null>(null);
   const [targetMissing, setTargetMissing] = useState(false);
+  const [popoverHeight, setPopoverHeight] = useState(228);
+  const [, setViewportVersion] = useState(0);
   const executedStepRef = useRef<string | null>(null);
+  const popoverRef = useRef<HTMLDivElement | null>(null);
 
   const scenario = useMemo(() => {
     if (!runtime.tour.active || !runtime.tour.scenarioId) return null;
@@ -131,6 +138,56 @@ export function GuidedTourOverlay() {
   }, [runtime.tour.active]);
 
   useEffect(() => {
+    if (!runtime.tour.active) return;
+
+    const refreshViewport = () => {
+      setViewportVersion((value) => value + 1);
+    };
+
+    const vv = window.visualViewport;
+    window.addEventListener('resize', refreshViewport);
+    vv?.addEventListener('resize', refreshViewport);
+    vv?.addEventListener('scroll', refreshViewport);
+    return () => {
+      window.removeEventListener('resize', refreshViewport);
+      vv?.removeEventListener('resize', refreshViewport);
+      vv?.removeEventListener('scroll', refreshViewport);
+    };
+  }, [runtime.tour.active]);
+
+  useEffect(() => {
+    if (!runtime.tour.active || !popoverRef.current) return;
+
+    const popoverElement = popoverRef.current;
+    const measure = () => {
+      const nextHeight = Math.round(popoverElement.getBoundingClientRect().height);
+      if (nextHeight > 0) {
+        setPopoverHeight((prev) => (Math.abs(prev - nextHeight) > 1 ? nextHeight : prev));
+      }
+    };
+
+    measure();
+
+    const observer =
+      typeof ResizeObserver !== 'undefined'
+        ? new ResizeObserver(() => {
+            measure();
+          })
+        : null;
+
+    observer?.observe(popoverElement);
+    window.addEventListener('resize', measure);
+    window.visualViewport?.addEventListener('resize', measure);
+    window.visualViewport?.addEventListener('scroll', measure);
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener('resize', measure);
+      window.visualViewport?.removeEventListener('resize', measure);
+      window.visualViewport?.removeEventListener('scroll', measure);
+    };
+  }, [runtime.tour.active, step?.id, targetRect]);
+
+  useEffect(() => {
     if (!runtime.tour.active || !step?.target) {
       setTargetRect(null);
       setTargetMissing(false);
@@ -140,12 +197,6 @@ export function GuidedTourOverlay() {
     let cancelled = false;
     let timer: ReturnType<typeof setTimeout> | null = null;
     let currentTarget: HTMLElement | null = null;
-
-    const cleanupCurrentTarget = () => {
-      if (currentTarget) {
-        currentTarget.classList.remove('demo-tour-target-active');
-      }
-    };
 
     const refreshRect = () => {
       if (!currentTarget) return;
@@ -159,9 +210,7 @@ export function GuidedTourOverlay() {
     };
 
     const attachTarget = (element: HTMLElement) => {
-      cleanupCurrentTarget();
       currentTarget = element;
-      element.classList.add('demo-tour-target-active');
       setTargetMissing(false);
       const isMobileViewport = window.innerWidth <= 900;
       element.scrollIntoView({
@@ -204,7 +253,7 @@ export function GuidedTourOverlay() {
       cancelled = true;
       if (timer) clearTimeout(timer);
       detachListeners();
-      cleanupCurrentTarget();
+      currentTarget = null;
     };
   }, [pathname, runtime.tour.active, step?.id, step?.target]);
 
@@ -225,40 +274,69 @@ export function GuidedTourOverlay() {
       };
     }
 
-    const width = Math.min(viewportWidth - 18, targetRect.width + 16);
-    const height = Math.min(Math.round(viewportHeight * 0.24), targetRect.height + 16);
+    const maxWidth = Math.max(84, viewportWidth - 16);
+    const maxHeight = Math.max(56, viewportHeight - 16);
+    const width = clamp(targetRect.width + 18, Math.min(120, maxWidth), maxWidth);
+    const height = clamp(targetRect.height + 18, Math.min(58, maxHeight), maxHeight);
     const minTop = viewport.offsetTop + 8;
-    const maxTop = viewport.offsetTop + viewportHeight - height - 84;
+    const maxTop = viewport.offsetTop + viewportHeight - height - 8;
     const minLeft = viewport.offsetLeft + 8;
     const maxLeft = viewport.offsetLeft + viewportWidth - width - 8;
+    const centeredTop = targetRect.top + targetRect.height / 2 - height / 2;
+    const centeredLeft = targetRect.left + targetRect.width / 2 - width / 2;
     return {
-      top: clamp(targetRect.top, minTop, Math.max(minTop, maxTop)),
-      left: clamp(targetRect.left + (targetRect.width + 16 - width) / 2, minLeft, Math.max(minLeft, maxLeft)),
+      top: clamp(centeredTop, minTop, Math.max(minTop, maxTop)),
+      left: clamp(centeredLeft, minLeft, Math.max(minLeft, maxLeft)),
       width,
       height
     };
   }, [mobileViewport, targetRect, viewport.offsetLeft, viewport.offsetTop, viewportHeight, viewportWidth]);
-  const popoverTop = mobileViewport
-    ? targetRect
-      ? targetRect.top + targetRect.height / 2 < viewport.offsetTop + viewportHeight * 0.52
-        ? clamp(
-            viewport.offsetTop + viewportHeight - 212 - (viewport.bottomInset + 82),
-            viewport.offsetTop + 12,
-            Math.max(viewport.offsetTop + 12, viewport.offsetTop + viewportHeight - 220)
-          )
-        : viewport.offsetTop + 12
-      : clamp(
-          viewport.offsetTop + viewportHeight - 212 - (viewport.bottomInset + 82),
-          viewport.offsetTop + 12,
-          Math.max(viewport.offsetTop + 12, viewport.offsetTop + viewportHeight - 220)
-        )
-    : targetRect
-      ? clamp(targetRect.top + targetRect.height + 14, viewport.offsetTop + 16, Math.max(viewport.offsetTop + viewportHeight - 220, 16))
-      : Math.max(viewport.offsetTop + viewportHeight / 2 - 120, viewport.offsetTop + 20);
+
+  const resolvedPopoverHeight = Math.max(164, popoverHeight);
+  const popoverTop = (() => {
+    const minTop = viewport.offsetTop + 10;
+    const maxTop = Math.max(minTop, viewport.offsetTop + viewportHeight - resolvedPopoverHeight - (mobileViewport ? viewport.bottomInset + 76 : 16));
+
+    if (!spotlightRect) {
+      return mobileViewport
+        ? maxTop
+        : Math.max(viewport.offsetTop + viewportHeight / 2 - resolvedPopoverHeight / 2, viewport.offsetTop + 20);
+    }
+
+    const targetStart = spotlightRect.top - 10;
+    const targetEnd = spotlightRect.top + spotlightRect.height + 10;
+
+    if (mobileViewport) {
+      const topCandidate = minTop;
+      const bottomCandidate = maxTop;
+      const overlapTop = overlapAmount(topCandidate, topCandidate + resolvedPopoverHeight, targetStart, targetEnd);
+      const overlapBottom = overlapAmount(bottomCandidate, bottomCandidate + resolvedPopoverHeight, targetStart, targetEnd);
+      return overlapTop < overlapBottom ? topCandidate : bottomCandidate;
+    }
+
+    const belowCandidate = clamp(
+      spotlightRect.top + spotlightRect.height + 14,
+      minTop,
+      Math.max(minTop, viewport.offsetTop + viewportHeight - resolvedPopoverHeight - 16)
+    );
+    const aboveCandidate = clamp(
+      spotlightRect.top - resolvedPopoverHeight - 14,
+      minTop,
+      Math.max(minTop, viewport.offsetTop + viewportHeight - resolvedPopoverHeight - 16)
+    );
+    const overlapBelow = overlapAmount(belowCandidate, belowCandidate + resolvedPopoverHeight, targetStart, targetEnd);
+    const overlapAbove = overlapAmount(aboveCandidate, aboveCandidate + resolvedPopoverHeight, targetStart, targetEnd);
+    return overlapBelow <= overlapAbove ? belowCandidate : aboveCandidate;
+  })();
+
   const popoverLeft = mobileViewport
     ? viewport.offsetLeft + 10
-    : targetRect
-      ? clamp(targetRect.left, viewport.offsetLeft + 14, Math.max(viewport.offsetLeft + viewportWidth - 420, viewport.offsetLeft + 14))
+    : spotlightRect
+      ? clamp(
+          spotlightRect.left,
+          viewport.offsetLeft + 14,
+          Math.max(viewport.offsetLeft + viewportWidth - 420, viewport.offsetLeft + 14)
+        )
       : Math.max(viewport.offsetLeft + viewportWidth / 2 - 200, viewport.offsetLeft + 12);
 
   if (!runtime.tour.active || !scenario || !step) return null;
@@ -293,7 +371,7 @@ export function GuidedTourOverlay() {
         <div className="demo-tour-mask" aria-hidden />
       )}
 
-      <div className="demo-tour-popover" style={{ top: popoverTop, left: popoverLeft }}>
+      <div className="demo-tour-popover" style={{ top: popoverTop, left: popoverLeft }} ref={popoverRef}>
         <div className="demo-tour-head">
           <p className="mono">{progressLabel}</p>
           <button type="button" className="wallet-action wallet-action-soft demo-tour-btn-skip" onClick={() => stopGuidedTour()}>

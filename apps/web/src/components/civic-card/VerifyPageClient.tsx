@@ -70,7 +70,7 @@ export function VerifyPageClient({
       ) : null}
 
       {token && effectiveVerification ? (
-        <div className="civic-verify-shell">
+        <div className="civic-verify-shell" data-tour="verify-result-card">
           <div className="civic-verify-status">
             <StatusPill label={isValid ? tt('status.valid') : tt('status.invalid')} tone={isValid ? 'success' : 'critical'} />
             {!isValid && effectiveVerification.reason ? <p className="civic-verify-reason">{tt('verify.reason', { reason: reasonLabel })}</p> : null}
