@@ -553,14 +553,14 @@ export function WalletDocumentsClient({
             </button>
           </div>
         ) : (
-          <div className="wallet-track">
+          <div className="wallet-track" data-tour="documents-grid">
             {filteredDocuments.map((item, index) => {
               const status = statusPillForLifecycle(item.displayLifecycle);
               return (
                 <article
                   className="wallet-document-card wallet-document-card-clickable"
                   key={item.id}
-                  data-tour={item.id === 'doc-residence' ? 'wallet-residence-card' : undefined}
+                  data-tour={item.id === 'doc-residence' ? 'document-card-residence' : undefined}
                   style={{ background: cardThemes[index % cardThemes.length] }}
                   role="button"
                   tabIndex={0}

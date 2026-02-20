@@ -2774,6 +2774,106 @@ a,
   box-shadow: 0 0 0 3px rgba(46, 74, 232, 0.48), 0 0 0 8px rgba(46, 74, 232, 0.18) !important;
 }
 
+.onboarding-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 160;
+  pointer-events: none;
+}
+
+.onboarding-mask {
+  position: fixed;
+  inset: 0;
+  background: rgba(9, 14, 28, 0.62);
+}
+
+.onboarding-spotlight {
+  position: fixed;
+  border-radius: 16px;
+  border: 2px solid rgba(120, 160, 255, 0.8);
+  box-shadow: 0 0 0 9999px rgba(9, 14, 28, 0.64), 0 0 0 10px rgba(82, 125, 244, 0.12);
+  transition: top 220ms ease, left 220ms ease, width 220ms ease, height 220ms ease;
+  animation: onboardingSpotPulse 1.7s ease-in-out infinite;
+}
+
+@keyframes onboardingSpotPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 9999px rgba(9, 14, 28, 0.64), 0 0 0 10px rgba(82, 125, 244, 0.12);
+  }
+  50% {
+    box-shadow: 0 0 0 9999px rgba(9, 14, 28, 0.64), 0 0 0 14px rgba(82, 125, 244, 0.22);
+  }
+}
+
+.onboarding-card-wrap {
+  position: fixed;
+  width: min(400px, calc(100vw - 20px));
+  z-index: 161;
+  pointer-events: auto;
+  transition: top 220ms ease, left 220ms ease;
+}
+
+.onboarding-tour-card {
+  border-radius: 16px;
+  background: #fff;
+  border: 1px solid rgba(22, 35, 78, 0.2);
+  box-shadow: 0 22px 34px rgba(7, 12, 30, 0.36);
+  padding: 14px;
+  display: grid;
+  gap: 8px;
+}
+
+.onboarding-tour-card h3 {
+  font-size: 22px;
+  line-height: 1.1;
+}
+
+.onboarding-tour-card p {
+  color: var(--ink-700);
+  line-height: 1.45;
+}
+
+.onboarding-tour-card-head,
+.onboarding-tour-actions,
+.onboarding-tour-cta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.onboarding-tour-cta-row {
+  padding-top: 2px;
+}
+
+.onboarding-tour-warning {
+  color: #a2451b;
+  font-size: 13px;
+}
+
+.onboarding-tour-card-finish {
+  animation: onboardingCardDone 280ms ease-out;
+}
+
+@keyframes onboardingCardDone {
+  0% {
+    transform: scale(0.98);
+    opacity: 0.86;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.onboarding-target-active {
+  position: relative;
+  z-index: 162 !important;
+  box-shadow: 0 0 0 2px rgba(72, 108, 235, 0.5), 0 0 0 6px rgba(72, 108, 235, 0.16) !important;
+}
+
 .authority-layout {
   display: grid;
   gap: 12px;

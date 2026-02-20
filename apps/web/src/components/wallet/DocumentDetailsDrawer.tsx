@@ -371,7 +371,7 @@ export function DocumentDetailsDrawer({
           </div>
         </div>
 
-        <div className="wallet-drawer-actions">
+        <div className="wallet-drawer-actions" data-tour="document-drawer-actions">
           <button
             type="button"
             className="wallet-action wallet-action-primary"

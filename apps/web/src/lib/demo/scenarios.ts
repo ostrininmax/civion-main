@@ -75,7 +75,7 @@ export const DEMO_SCENARIOS: Record<string, DemoScenario> = {
         id: 'tour-step-2',
         titleKey: 'demo.tour.step2.title',
         bodyKey: 'demo.tour.step2.body',
-        target: '[data-tour="wallet-residence-card"]',
+        target: '[data-tour="document-card-residence"]',
         actions: [
           { type: 'goTo', path: '/wallet?filter=expiring' },
           { type: 'openDocument', documentId: 'doc-residence' }
@@ -97,7 +97,7 @@ export const DEMO_SCENARIOS: Record<string, DemoScenario> = {
         id: 'tour-step-5',
         titleKey: 'demo.tour.step5.title',
         bodyKey: 'demo.tour.step5.body',
-        target: '[data-tour="civic-qr-shell"]',
+        target: '[data-tour="civic-qr"]',
         actions: [
           {
             type: 'generateVerificationToken',
@@ -117,7 +117,7 @@ export const DEMO_SCENARIOS: Record<string, DemoScenario> = {
         id: 'tour-step-7',
         titleKey: 'demo.tour.step7.title',
         bodyKey: 'demo.tour.step7.body',
-        target: '[data-tour="timeline-events"]',
+        target: '[data-tour="requests-tracker"]',
         actions: [
           {
             type: 'addAuditEvent',

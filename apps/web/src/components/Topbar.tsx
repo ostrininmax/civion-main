@@ -124,6 +124,7 @@ export function Topbar() {
           <button
             type="button"
             className={`topbar-bell-button ${bellPulse ? 'topbar-bell-button-pulse' : ''}`}
+            data-tour="notifications-bell"
             aria-label={t('topbar.notifications')}
             aria-haspopup="menu"
             aria-expanded={open}

@@ -92,6 +92,7 @@ export function EmergencyLockControl({ compact = false }: { compact?: boolean })
       <button
         type="button"
         className={`wallet-action ${isLocked ? 'wallet-action-critical' : compact ? 'wallet-action-soft' : 'wallet-action-critical'}`}
+        data-tour="emergency-lock-btn"
         onClick={() => openModal(setOpen, 'security.lock_modal_open')}
       >
         {t('security.emergency_title')}

@@ -10,7 +10,7 @@ export type NextStepItem = {
 
 export function NextStepsCard({ title, subtitle, items }: { title: string; subtitle: string; items: NextStepItem[] }) {
   return (
-    <article className="card next-steps-card">
+    <article className="card next-steps-card" data-tour="dashboard-main">
       <div className="wallet-rights-head">
         <div>
           <p className="wallet-stat-label">{subtitle}</p>

@@ -1,11 +1,13 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Section } from '../../components/Section';
 import { LanguageSwitcher } from '../../components/LanguageSwitcher';
 import { EmergencyLockControl } from '../../components/security/EmergencyLockControl';
 import { resetDemoState, setDemoMode } from '../../lib/storage/demo-store';
 import { resetDemoRuntimeState, setQaMode } from '../../lib/demo/runtime-store';
+import { dispatchOnboardingCommand, ONBOARDING_STATE_EVENT, readOnboardingMeta } from '../../lib/onboarding/tourEngine';
 import { useDemoState } from '../../lib/storage/use-demo-state';
 import { useTranslation } from '../../lib/i18n/context';
 import { useDemoRuntimeState } from '../../lib/demo/use-demo-runtime';
@@ -15,6 +17,19 @@ export default function SettingsPage() {
   const state = useDemoState();
   const runtime = useDemoRuntimeState();
   const { t } = useTranslation();
+  const [tourMeta, setTourMeta] = useState(() => readOnboardingMeta());
+
+  useEffect(() => {
+    const sync = () => {
+      setTourMeta(readOnboardingMeta());
+    };
+
+    sync();
+    window.addEventListener(ONBOARDING_STATE_EVENT, sync);
+    return () => {
+      window.removeEventListener(ONBOARDING_STATE_EVENT, sync);
+    };
+  }, []);
 
   return (
     <>
@@ -63,6 +78,52 @@ export default function SettingsPage() {
                 </Link>
               </>
             ) : null}
+          </article>
+
+          <article className="settings-card">
+            <div className="badge">{t('settings.tour_badge')}</div>
+            <p className="settings-text">{t('settings.tour_desc')}</p>
+            {tourMeta.canResume ? (
+              <p className="settings-text">
+                {t('settings.tour_progress', {
+                  step: (tourMeta.progressIndex ?? 0) + 1
+                })}
+              </p>
+            ) : null}
+            <div className="wallet-flow-checklist">
+              <button
+                type="button"
+                className="wallet-action"
+                onClick={() => {
+                  dispatchOnboardingCommand('start');
+                  toastSuccess(t('settings.start_tour'), 'settings.start_tour');
+                }}
+              >
+                {t('settings.start_tour')}
+              </button>
+              {tourMeta.canResume ? (
+                <button
+                  type="button"
+                  className="wallet-action wallet-action-soft"
+                  onClick={() => {
+                    dispatchOnboardingCommand('resume');
+                    toastSuccess(t('settings.resume_tour'), 'settings.resume_tour');
+                  }}
+                >
+                  {t('settings.resume_tour')}
+                </button>
+              ) : null}
+              <button
+                type="button"
+                className="wallet-action wallet-action-soft"
+                onClick={() => {
+                  dispatchOnboardingCommand('restart');
+                  toastSuccess(t('settings.restart_tour'), 'settings.restart_tour');
+                }}
+              >
+                {t('settings.restart_tour')}
+              </button>
+            </div>
           </article>
 
           <article className="settings-card">

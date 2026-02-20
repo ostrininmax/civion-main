@@ -132,7 +132,7 @@ export function ServiceCatalog() {
       </Section>
 
       <Section title={tt('services.all_title')} action={tt('services.all_action')}>
-        <div className="services-catalog-grid">
+        <div className="services-catalog-grid" data-tour="services-catalog">
           {filtered.map((item) => (
             <article key={item.slug} className="service-catalog-card">
               <h3>{localizeServiceTitle(locale, item.slug, item.title)}</h3>

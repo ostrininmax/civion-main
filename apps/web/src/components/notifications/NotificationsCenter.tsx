@@ -36,51 +36,53 @@ export function NotificationsCenter() {
 
   return (
     <Section title={tt('notifications.title')} action={tt('common.unread_count', { count: state.notifications.filter((item) => !item.read).length })}>
-      <div className="notifications-head-actions">
-        <button type="button" className="wallet-action wallet-action-soft" onClick={() => markAllNotificationsRead()}>
-          {tt('notifications.mark_all_read')}
-        </button>
-      </div>
+      <div data-tour="notifications-center">
+        <div className="notifications-head-actions">
+          <button type="button" className="wallet-action wallet-action-soft" onClick={() => markAllNotificationsRead()}>
+            {tt('notifications.mark_all_read')}
+          </button>
+        </div>
 
-      {Object.entries(grouped).map(([group, notifications]) => (
-        <div key={group} className="notifications-group">
-          <h3>{group}</h3>
-          <div className="notifications-list">
-            {notifications.map((notification) => (
-              <article
-                key={notification.id}
-                className={`notification-card ${notification.read ? '' : 'notification-card-unread'}`}
-                onClick={() => markNotificationRead(notification.id)}
-              >
-                <div>
-                  <p className="notification-title">{localizeNotificationTitle(locale, notification.title)}</p>
-                  <p className="notification-body">{localizeNotificationBody(locale, notification.body)}</p>
-                  <small className="notification-time">{formatDateTime(notification.createdAt)}</small>
-                </div>
-                {notification.ctaHref ? (
-                  <Link
-                    href={notification.ctaHref}
-                    className="wallet-action"
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      markNotificationRead(notification.id);
-                    }}
-                  >
-                    {notification.ctaLabel ? localizeNotificationTitle(locale, notification.ctaLabel) : tt('common.open')}
-                  </Link>
-                ) : null}
-              </article>
-            ))}
+        {Object.entries(grouped).map(([group, notifications]) => (
+          <div key={group} className="notifications-group">
+            <h3>{group}</h3>
+            <div className="notifications-list">
+              {notifications.map((notification) => (
+                <article
+                  key={notification.id}
+                  className={`notification-card ${notification.read ? '' : 'notification-card-unread'}`}
+                  onClick={() => markNotificationRead(notification.id)}
+                >
+                  <div>
+                    <p className="notification-title">{localizeNotificationTitle(locale, notification.title)}</p>
+                    <p className="notification-body">{localizeNotificationBody(locale, notification.body)}</p>
+                    <small className="notification-time">{formatDateTime(notification.createdAt)}</small>
+                  </div>
+                  {notification.ctaHref ? (
+                    <Link
+                      href={notification.ctaHref}
+                      className="wallet-action"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        markNotificationRead(notification.id);
+                      }}
+                    >
+                      {notification.ctaLabel ? localizeNotificationTitle(locale, notification.ctaLabel) : tt('common.open')}
+                    </Link>
+                  ) : null}
+                </article>
+              ))}
+            </div>
           </div>
-        </div>
-      ))}
+        ))}
 
-      {state.notifications.length === 0 ? (
-        <div className="wallet-empty-card">
-          <h3>{tt('notifications.none_title')}</h3>
-          <p>{tt('notifications.none_desc')}</p>
-        </div>
-      ) : null}
+        {state.notifications.length === 0 ? (
+          <div className="wallet-empty-card">
+            <h3>{tt('notifications.none_title')}</h3>
+            <p>{tt('notifications.none_desc')}</p>
+          </div>
+        ) : null}
+      </div>
     </Section>
   );
 }

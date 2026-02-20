@@ -181,7 +181,7 @@ export function DashboardClient() {
       </Section>
 
       <Section title={t(state.locale, 'dashboard.quick_actions')} action={t(state.locale, 'dashboard.one_tap_tasks')}>
-        <div className="quick-actions-grid">
+        <div className="quick-actions-grid" data-tour="dashboard-quick-actions">
           <Link href="/wallet" className="quick-action-item">
             {t(state.locale, 'dashboard.upload_document')}
           </Link>

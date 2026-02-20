@@ -7,6 +7,7 @@ import { usePathname } from 'next/navigation';
 import { Sidebar } from './Sidebar';
 import { Topbar } from './Topbar';
 import { DemoExperienceLayer } from './demo/DemoExperienceLayer';
+import { TourOverlay } from './onboarding/TourOverlay';
 import { syncSecurityLockExpiry } from '../lib/storage/demo-store';
 import { useDemoSelector } from '../lib/storage/use-demo-state';
 import { useTranslation } from '../lib/i18n/context';
@@ -61,6 +62,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </main>
         </div>
         <DemoExperienceLayer />
+        <TourOverlay />
       </>
     );
   }
@@ -78,6 +80,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       </div>
       <DemoExperienceLayer />
+      <TourOverlay />
     </>
   );
 }

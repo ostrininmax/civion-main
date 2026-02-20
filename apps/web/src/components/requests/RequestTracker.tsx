@@ -63,7 +63,7 @@ export function RequestTracker() {
 
       <Section title={t('requests.events_title')} action={t('requests.events_action')}>
         <div className="table-wrap">
-          <table className="table" data-tour="timeline-events">
+          <table className="table" data-tour="requests-tracker">
             <thead>
               <tr>
                 <th>{t('timeline.event')}</th>

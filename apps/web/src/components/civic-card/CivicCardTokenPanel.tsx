@@ -210,7 +210,7 @@ export function CivicCardTokenPanel({
         </p>
       </div>
 
-      <div className="civic-qr-shell" data-tour="civic-qr-shell">
+      <div className="civic-qr-shell" data-tour="civic-qr">
         {isLocked ? (
           <div className="civic-locked-shell">
             <span className="badge badge-critical">{tt('civic.locked_badge')}</span>
@@ -320,7 +320,7 @@ export function CivicCardTokenPanel({
         {error ? <p className="wallet-action-error">{error}</p> : null}
       </div>
 
-      <details className="civic-details-shell" open data-tour="civic-what-verifier-sees">
+      <details className="civic-details-shell" open data-tour="verifier-privacy">
         <summary>{tt('civic.what_verifier_sees')}</summary>
         <div className="civic-details-grid">
           <p className="civic-details-row">
