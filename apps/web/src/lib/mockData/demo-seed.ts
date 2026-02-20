@@ -1,4 +1,5 @@
 import type {
+  AccountSecurityState,
   AppNotification,
   ConsentRecord,
   DemoState,
@@ -180,6 +181,45 @@ const baseVerificationEvents: VerificationEvent[] = [
   }
 ];
 
+const baseAccountSecurity: AccountSecurityState = {
+  isLocked: false,
+  lockType: 'soft',
+  lockedAt: null,
+  lockDuration: undefined,
+  lockedUntil: undefined,
+  compromisedDocuments: [],
+  lockHistory: [],
+  failedVerificationAttempts: [],
+  deviceSessions: [
+    {
+      id: 'sess_web_primary',
+      channel: 'web',
+      location: 'Nicosia, Cyprus',
+      device: 'Chrome on macOS',
+      lastSeenAt: offset(-1),
+      active: true
+    },
+    {
+      id: 'sess_mobile',
+      channel: 'mobile',
+      location: 'Larnaca, Cyprus',
+      device: 'Safari on iOS',
+      lastSeenAt: offset(-8),
+      active: true
+    },
+    {
+      id: 'sess_tablet',
+      channel: 'tablet',
+      location: 'Limassol, Cyprus',
+      device: 'iPadOS',
+      lastSeenAt: offset(-72),
+      active: false
+    }
+  ],
+  unlockPin: '2580',
+  lastLockAnimationAt: undefined
+};
+
 const baseConsents: ConsentRecord[] = [
   {
     id: 'consent_registry',
@@ -240,7 +280,7 @@ const baseDocumentMeta: Record<string, DocumentMetaState> = Object.fromEntries(
 
 export function createInitialDemoState(): DemoState {
   return {
-    version: 4,
+    version: 5,
     locale: 'en',
     demoMode: true,
     documents: [...MOCK_DOCUMENTS],
@@ -267,6 +307,13 @@ export function createInitialDemoState(): DemoState {
     ],
     notifications: [...baseNotifications],
     verificationEvents: [...baseVerificationEvents],
+    accountSecurity: {
+      ...baseAccountSecurity,
+      compromisedDocuments: [...(baseAccountSecurity.compromisedDocuments ?? [])],
+      lockHistory: [...baseAccountSecurity.lockHistory],
+      failedVerificationAttempts: [...baseAccountSecurity.failedVerificationAttempts],
+      deviceSessions: baseAccountSecurity.deviceSessions.map((session) => ({ ...session }))
+    },
     profile: {
       fullName: 'Roman Kochetov',
       dateOfBirth: '1997-04-12',

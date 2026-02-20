@@ -6,11 +6,13 @@ import { useRouter } from 'next/navigation';
 import QRCode from 'qrcode';
 import type { CivicCardScope, CivicCardTokenResponse } from '../../lib/client-api';
 import { appendRecentCheck } from '../../lib/recent-checks';
-import { addVerificationEvent } from '../../lib/storage/demo-store';
+import { addFailedVerificationAttempt, addVerificationEvent } from '../../lib/storage/demo-store';
 import { createBenefitPassToken } from '../../lib/verification-token';
 import { t } from '../../lib/i18n';
 import { useTranslation } from '../../lib/i18n/context';
 import { setDemoScenarioToken } from '../../lib/demo/runtime-store';
+import { useDemoSelector } from '../../lib/storage/use-demo-state';
+import { EmergencyLockControl } from '../security/EmergencyLockControl';
 
 const ROTATION_SECONDS = 30;
 
@@ -36,6 +38,7 @@ export function CivicCardTokenPanel({
 }) {
   const router = useRouter();
   const { locale, t: tt, formatDateTime } = useTranslation();
+  const security = useDemoSelector((state) => state.accountSecurity);
   const [tokenData, setTokenData] = useState(initialToken);
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
   const [copyLabel, setCopyLabel] = useState(tt('civic.share_proof'));
@@ -45,6 +48,7 @@ export function CivicCardTokenPanel({
   const [lastValidAt, setLastValidAt] = useState(initialToken.issuedAt);
   const [isOnline, setIsOnline] = useState(true);
   const [bigScreenOpen, setBigScreenOpen] = useState(false);
+  const isLocked = Boolean(security.isLocked && security.lockedAt);
   const scannerVerifier = t('en', 'civic.scanner', 'Civic Card Scanner');
   const citizenAppVerifier = t('en', 'wallet.verifier_citizen_app', 'Citizen App');
   const minimalDataShown = 'Status + validity only';
@@ -116,6 +120,7 @@ export function CivicCardTokenPanel({
   useEffect(() => {
     const timer = window.setInterval(() => {
       setSecondsToRotate((prev) => {
+        if (isLocked) return prev;
         if (prev <= 1) {
           const next = createBenefitPassToken({
             scopes: tokenData.scopes,
@@ -144,9 +149,18 @@ export function CivicCardTokenPanel({
     }, 1000);
 
     return () => window.clearInterval(timer);
-  }, [extendedDataShown, issuer, minimalDataShown, privacyMode, scannerVerifier, status, tokenData.scopes]);
+  }, [extendedDataShown, isLocked, issuer, minimalDataShown, privacyMode, scannerVerifier, status, tokenData.scopes]);
 
   const rotateToken = () => {
+    if (isLocked) {
+      addFailedVerificationAttempt({
+        actor: scannerVerifier,
+        reason: t('en', 'verify.reason.account_locked')
+      });
+      setError(tt('authority.invalid_locked'));
+      return;
+    }
+
     const next = createBenefitPassToken({
       scopes: tokenData.scopes,
       ttlSeconds: 120,
@@ -197,6 +211,14 @@ export function CivicCardTokenPanel({
       </div>
 
       <div className="civic-qr-shell" data-tour="civic-qr-shell">
+        {isLocked ? (
+          <div className="civic-locked-shell">
+            <span className="badge badge-critical">{tt('civic.locked_badge')}</span>
+            <p>{tt('civic.locked_desc')}</p>
+            {security.lockedAt ? <p className="civic-token-meta">{tt('security.locked_since', { date: formatDateTime(security.lockedAt) })}</p> : null}
+          </div>
+        ) : null}
+
         <div className="civic-privacy-row">
           <span className="wallet-query-label">{tt('civic.privacy_mode')}</span>
           <label className="wallet-flow-check">
@@ -209,8 +231,10 @@ export function CivicCardTokenPanel({
           </label>
         </div>
 
-        <div className="civic-qr-frame" aria-live="polite">
-          {qrDataUrl ? (
+        <div className={`civic-qr-frame ${isLocked ? 'civic-qr-frame-disabled' : ''}`} aria-live="polite">
+          {isLocked ? (
+            <div className="civic-qr-loading">{tt('civic.qr_disabled')}</div>
+          ) : qrDataUrl ? (
             <Image
               src={qrDataUrl}
               alt={tt('civic.qr_alt')}
@@ -238,13 +262,22 @@ export function CivicCardTokenPanel({
         </div>
 
         <div className="civic-token-actions">
-          <button type="button" className="wallet-action wallet-action-primary" onClick={rotateToken}>
+          <button type="button" className="wallet-action wallet-action-primary" onClick={rotateToken} disabled={isLocked}>
             {tt('civic.generate_qr')}
           </button>
           <button
             type="button"
             className="wallet-action"
+            disabled={isLocked}
             onClick={async () => {
+              if (isLocked) {
+                addFailedVerificationAttempt({
+                  actor: citizenAppVerifier,
+                  reason: t('en', 'verify.reason.account_locked')
+                });
+                setError(tt('authority.invalid_locked'));
+                return;
+              }
               const shareUrl = `${window.location.origin}/verify?token=${encodeURIComponent(tokenData.token)}`;
               try {
                 await navigator.clipboard.writeText(shareUrl);
@@ -281,6 +314,7 @@ export function CivicCardTokenPanel({
           >
             {tt('civic.authority_demo')}
           </button>
+          <EmergencyLockControl compact />
         </div>
 
         {error ? <p className="wallet-action-error">{error}</p> : null}

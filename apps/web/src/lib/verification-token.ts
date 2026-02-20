@@ -9,7 +9,7 @@ export type BenefitPassTokenResponse = {
 
 export type BenefitPassVerificationResponse = {
   valid: boolean;
-  reason?: 'missing_token' | 'invalid_format' | 'invalid_signature' | 'expired' | 'malformed_payload';
+  reason?: 'missing_token' | 'invalid_format' | 'invalid_signature' | 'expired' | 'malformed_payload' | 'account_locked';
   issuedAt?: string;
   expiresAt?: string;
   issuer?: string;

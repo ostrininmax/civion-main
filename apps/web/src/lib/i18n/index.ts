@@ -111,6 +111,7 @@ const baseEn: Dictionary = {
   'wallet.status_expiring': 'Expiring soon',
   'wallet.status_expired': 'Expired',
   'wallet.status_in_renewal': 'In renewal',
+  'wallet.status_compromised': 'Compromised',
   'wallet.recent_checks': 'Recent Checks',
   'wallet.recent_checks_action': 'Last 5 verifications',
   'wallet.toast_share_copied': 'Proof link copied.',
@@ -126,6 +127,10 @@ const baseEn: Dictionary = {
   'wallet.pending': 'pending',
   'wallet.fields': 'Fields',
   'wallet.document_expired': 'Document expired',
+  'wallet.document_compromised': 'Document marked as compromised',
+  'wallet.compromised_banner_title': 'Compromised documents detected',
+  'wallet.compromised_banner_desc': 'Hard lock marked documents as compromised. Start reissue to restore trust.',
+  'wallet.compromised_banner_action': 'Start reissue process',
 
   'wallet.active_rights': 'Your Active Rights',
   'wallet.active_rights_count': '{count} active rights',
@@ -1205,6 +1210,10 @@ const extraEn: Dictionary = {
   'civic.scope.trp_valid': 'Temporary Residence Permit valid',
   'civic.scope.transport_concession': 'Transport concession',
   'civic.one_sentence': 'Prove your rights instantly - without sharing extra personal data.',
+  'civic.emergency_lock': 'Emergency Lock',
+  'civic.locked_badge': 'LOCKED',
+  'civic.locked_desc': 'Civic Card is temporarily disabled. Verification is blocked until unlock.',
+  'civic.qr_disabled': 'QR disabled while account is locked.',
 
   'verify.title': 'Verifier',
   'verify.action': 'BenefitPass check',
@@ -1213,12 +1222,16 @@ const extraEn: Dictionary = {
   'verify.unavailable': 'Verification unavailable',
   'verify.unavailable_desc': 'The verifier service is temporarily unavailable.',
   'verify.reason': 'Reason: {reason}',
+  'verify.reason.account_locked': 'Verification blocked - account locked by owner',
   'verify.unknown_issuer': 'Unknown issuer',
   'verify.profile_min': 'Profile minimisation: no full personal profile fields are shared by default.',
   'verify.back_to_card': 'Back to Civic Card',
   'verify.expiration_timer': 'Expiration timer: {label}',
   'verify.expired': 'Expired',
   'verify.benefitpass_check': 'BenefitPass check',
+  'verify.locked_title': 'Verification blocked',
+  'verify.locked_desc': 'Account is currently locked by the owner. Personal data is hidden.',
+  'verify.locked_at': 'Locked at: {date}',
 
   'authority.title': 'Authority Check Demo',
   'authority.subtitle': 'Citizen proof and verifier panel side by side.',
@@ -1241,6 +1254,7 @@ const extraEn: Dictionary = {
   'authority.minimal_statement': 'Only status + validity shown',
   'authority.invalid_token': 'Token expired or invalid. Generate new QR.',
   'authority.invalid_permit': 'Permit expired. Renewal required.',
+  'authority.invalid_locked': 'Verification blocked - account locked by owner.',
   'authority.toast_invalid': 'Verification failed. Please generate a new proof.',
   'authority.toast_valid': 'Verification successful and logged.',
   'authority.simulated_expired_token': 'Expired token simulated.',
@@ -1259,6 +1273,8 @@ const extraEn: Dictionary = {
   'demo.controls.presenter_mode': 'Start presenter mode',
   'demo.controls.police_check': 'Run Police Check scenario',
   'demo.controls.border_crossing': 'Run Border Crossing scenario',
+  'demo.controls.simulate_stolen_phone': 'Simulate stolen phone',
+  'demo.controls.simulate_unauthorized_attempt': 'Simulate unauthorized verification',
 
   'demo.tour.title': 'Guided Tour',
   'demo.tour.description': 'Interactive walkthrough of the core citizen verification flow.',
@@ -1319,6 +1335,8 @@ const extraEn: Dictionary = {
   'demo.toast.renewal_started': 'Renewal flow started',
   'demo.toast.verification_valid': 'Verification logged as valid.',
   'demo.toast.verification_invalid': 'Verification logged as invalid.',
+  'demo.toast.stolen_phone': 'Stolen phone scenario simulated. Account locked.',
+  'demo.toast.unauthorized_attempt': 'Unauthorized verification attempt logged.',
 
   'qa.mode.enable': 'Enable QA mode',
   'qa.mode.disable': 'Disable QA mode',
@@ -1372,6 +1390,56 @@ const extraEn: Dictionary = {
   'settings.profile': 'Profile',
   'settings.consents': 'Data consents',
   'settings.security': 'Security activity',
+  'security.global_banner': 'Account temporarily locked',
+  'security.global_banner_hard': 'Account temporarily locked - hard lock',
+  'security.global_banner_action': 'Open security',
+  'security.emergency_title': 'Emergency Lock',
+  'security.emergency_desc': 'Immediately disable verification and revoke active proof links.',
+  'security.lock_type': 'Lock type',
+  'security.lock_type_soft': 'Soft Lock (Digital Freeze)',
+  'security.lock_type_hard': 'Hard Lock (Compromised)',
+  'security.lock_duration': 'Lock duration',
+  'security.duration_1h': '1 hour',
+  'security.duration_24h': '24 hours',
+  'security.duration_manual': 'Until manually unlocked',
+  'security.activate_lock': 'Activate Emergency Lock',
+  'security.locked_state': 'Account is currently locked',
+  'security.locked_since': 'Locked since: {date}',
+  'security.locked_until': 'Auto unlock: {date}',
+  'security.unlock_title': 'Unlock account',
+  'security.pin_label': 'PIN code',
+  'security.pin_placeholder': 'Enter 4-digit PIN',
+  'security.face_id': 'Use Face ID verification (simulated)',
+  'security.unlock_action': 'Unlock',
+  'security.unlock_success': 'Account successfully unlocked.',
+  'security.unlock_failed': 'Invalid PIN. Try again.',
+  'security.unlock_error': 'Unlock failed',
+  'security.lock_activated': 'Emergency protection activated.',
+  'security.hard_lock_hint': 'Hard lock marks documents as compromised and suggests reissue.',
+  'security.start_reissue': 'Start reissue process',
+  'security.lock_history_title': 'Lock history',
+  'security.failed_checks_title': 'Failed verification attempts',
+  'security.sessions_title': 'Device sessions',
+  'security.event_type': 'Event',
+  'security.reason': 'Reason',
+  'security.actor': 'Actor',
+  'security.session_device': 'Device',
+  'security.session_location': 'Location',
+  'security.session_last_seen': 'Last seen',
+  'security.session_status': 'Status',
+  'security.session_active': 'Active',
+  'security.session_inactive': 'Inactive',
+  'security.unauthorized_attempt': 'Unauthorized verification attempt',
+  'security.event_lock': 'Emergency lock activated ({type})',
+  'security.event_unlock': 'Account unlocked',
+  'security.event_auto_unlock': 'Auto unlock (duration elapsed)',
+  'security.notification_locked_title': 'Account temporarily locked',
+  'security.notification_locked_body_soft': 'Soft lock active. Verification is blocked until unlock.',
+  'security.notification_locked_body_hard': 'Hard lock active. Documents marked as compromised.',
+  'security.notification_unlocked_title': 'Account successfully unlocked',
+  'security.notification_unlocked_body': 'Verification and sharing are available again.',
+  'security.notification_auto_unlocked_title': 'Account auto-unlocked',
+  'security.notification_auto_unlocked_body': 'Timed lock expired and access was restored.',
 
   'profile.title': 'Profile',
   'profile.action': 'Readiness {percent}%',
@@ -1410,6 +1478,7 @@ const extraEn: Dictionary = {
   'security.signins_action': 'Mocked for demo',
   'security.web': 'Web',
   'security.mobile': 'Mobile',
+  'security.tablet': 'Tablet',
   'security.report': 'Report suspicious activity',
   'security.report_title': 'Report suspicious activity',
   'security.report_reason': 'Describe what looked suspicious',
@@ -1914,6 +1983,10 @@ export function localizeRequestTimelineEvent(locale: LocaleCode, title: string) 
   if (title === 'Appointment booked') return t(locale, 'timeline.appointment_booked');
   if (title === 'Request updated') return t(locale, 'timeline.request_updated');
   if (title === 'Verification event logged') return t(locale, 'timeline.verification_logged');
+  if (title === 'Emergency soft lock activated') return ti(locale, 'security.event_lock', { type: t(locale, 'security.lock_type_soft') });
+  if (title === 'Emergency hard lock activated') return ti(locale, 'security.event_lock', { type: t(locale, 'security.lock_type_hard') });
+  if (title === 'Account unlocked by owner') return t(locale, 'security.event_unlock');
+  if (title === 'Emergency lock expired automatically') return t(locale, 'security.event_auto_unlock');
 
   const referenceMatch = title.match(/^Request ([A-Z0-9-]+) submitted$/);
   if (referenceMatch) {
@@ -1952,6 +2025,9 @@ export function localizeNotificationTitle(locale: LocaleCode, title: string) {
   if (title === 'Your Civic Card was verified by Police') return t(locale, 'demo.notification.police_verified_title');
   if (title === 'Border crossing mode started') return t(locale, 'demo.notification.crossing_started_title');
   if (title === 'Border crossing cleared') return t(locale, 'demo.notification.border_cleared_title');
+  if (title === 'Account temporarily locked') return t(locale, 'security.notification_locked_title');
+  if (title === 'Account successfully unlocked') return t(locale, 'security.notification_unlocked_title');
+  if (title === 'Account auto-unlocked') return t(locale, 'security.notification_auto_unlocked_title');
 
   const reviewMatch = title.match(/^Request ([A-Z0-9-]+) moved to review$/);
   if (reviewMatch) return ti(locale, 'notification.request_review_title', { reference: reviewMatch[1] });
@@ -1981,6 +2057,10 @@ export function localizeNotificationBody(locale: LocaleCode, body: string) {
   if (body === 'Verification event logged in your timeline.') return t(locale, 'demo.notification.police_verified_body');
   if (body === 'Checkpoint verification started. Open authority view.') return t(locale, 'demo.notification.crossing_started_body');
   if (body === 'Checkpoint accepted your proof. Status: Cleared.') return t(locale, 'demo.notification.border_cleared_body');
+  if (body === 'Soft lock active. Verification is blocked until unlock.') return t(locale, 'security.notification_locked_body_soft');
+  if (body === 'Hard lock active. Documents marked as compromised.') return t(locale, 'security.notification_locked_body_hard');
+  if (body === 'Verification and sharing are available again.') return t(locale, 'security.notification_unlocked_body');
+  if (body === 'Timed lock expired and access was restored.') return t(locale, 'security.notification_auto_unlocked_body');
 
   const inProcessingMatch = body.match(/^(.+) is now in processing\.$/);
   if (inProcessingMatch) return ti(locale, 'notification.request_processing_body', { service: inProcessingMatch[1] });

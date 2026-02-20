@@ -201,7 +201,7 @@ export function runDemoAction(action: DemoAction, helpers: DemoRunHelpers): Bene
 function getDemoStateToken() {
   if (typeof window === 'undefined') return null;
   try {
-    return JSON.parse(window.localStorage.getItem('cyprus-services.demo-runtime.v1') ?? '{}')?.lastGeneratedToken ?? null;
+    return JSON.parse(window.localStorage.getItem('cyprus-services.demo-runtime.v2') ?? '{}')?.lastGeneratedToken ?? null;
   } catch {
     return null;
   }

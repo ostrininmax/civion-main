@@ -1,13 +1,18 @@
 import type {
+  AccountSecurityState,
   AppNotification,
   Appointment,
   CitizenDocument,
   DemoState,
+  DeviceSession,
+  FailedVerificationAttempt,
   DocumentTag,
   DocumentHistoryEvent,
   DocumentShareRecord,
   MessageThread,
   RequestStatus,
+  SecurityLockHistoryEvent,
+  SecurityLockType,
   ServiceRequest,
   ShareDuration,
   ShareFieldKey,
@@ -18,6 +23,7 @@ import { SERVICE_DEFINITIONS } from '../mockData/definitions';
 
 const STORAGE_KEY = 'cyprus-services.demo-state.v4';
 const STORE_EVENT = 'cyprus-services:demo-state-updated';
+const DEFAULT_SECURITY_PIN = '2580';
 
 type StoreListener = () => void;
 
@@ -88,6 +94,71 @@ function ensureDocumentMetaForDocument(state: DemoState, document: CitizenDocume
   };
 }
 
+function defaultDeviceSessions(nowIso: string): DeviceSession[] {
+  return [
+    {
+      id: 'sess_web_primary',
+      channel: 'web',
+      location: 'Nicosia, Cyprus',
+      device: 'Chrome on macOS',
+      lastSeenAt: nowIso,
+      active: true
+    },
+    {
+      id: 'sess_mobile',
+      channel: 'mobile',
+      location: 'Larnaca, Cyprus',
+      device: 'Safari on iOS',
+      lastSeenAt: nowIso,
+      active: true
+    },
+    {
+      id: 'sess_tablet',
+      channel: 'tablet',
+      location: 'Limassol, Cyprus',
+      device: 'iPadOS',
+      lastSeenAt: nowIso,
+      active: false
+    }
+  ];
+}
+
+function ensureAccountSecurity(state: DemoState) {
+  const nowIso = new Date().toISOString();
+  const fallback: AccountSecurityState = {
+    isLocked: false,
+    lockType: 'soft',
+    lockedAt: null,
+    lockDuration: undefined,
+    lockedUntil: undefined,
+    compromisedDocuments: [],
+    lockHistory: [],
+    failedVerificationAttempts: [],
+    deviceSessions: defaultDeviceSessions(nowIso),
+    unlockPin: DEFAULT_SECURITY_PIN,
+    lastLockAnimationAt: undefined
+  };
+
+  const current = state.accountSecurity;
+  if (!current || typeof current !== 'object') {
+    state.accountSecurity = fallback;
+    return;
+  }
+
+  state.accountSecurity = {
+    ...fallback,
+    ...current,
+    compromisedDocuments: Array.isArray(current.compromisedDocuments) ? current.compromisedDocuments : [],
+    lockHistory: Array.isArray(current.lockHistory) ? current.lockHistory : [],
+    failedVerificationAttempts: Array.isArray(current.failedVerificationAttempts)
+      ? current.failedVerificationAttempts
+      : [],
+    deviceSessions: Array.isArray(current.deviceSessions) && current.deviceSessions.length > 0
+      ? current.deviceSessions
+      : fallback.deviceSessions
+  };
+}
+
 function normalizeState(candidate: Partial<DemoState> | null | undefined): DemoState {
   const base = createInitialDemoState();
   if (!candidate || typeof candidate !== 'object') return base;
@@ -104,6 +175,10 @@ function normalizeState(candidate: Partial<DemoState> | null | undefined): DemoS
     appointments: Array.isArray(candidate.appointments) ? candidate.appointments : base.appointments,
     notifications: Array.isArray(candidate.notifications) ? candidate.notifications : base.notifications,
     verificationEvents: Array.isArray(candidate.verificationEvents) ? candidate.verificationEvents : base.verificationEvents,
+    accountSecurity:
+      candidate.accountSecurity && typeof candidate.accountSecurity === 'object'
+        ? ({ ...base.accountSecurity, ...candidate.accountSecurity } as DemoState['accountSecurity'])
+        : base.accountSecurity,
     consents: Array.isArray(candidate.consents) ? candidate.consents : base.consents,
     documentMeta:
       candidate.documentMeta && typeof candidate.documentMeta === 'object' ? candidate.documentMeta : base.documentMeta,
@@ -113,6 +188,7 @@ function normalizeState(candidate: Partial<DemoState> | null | undefined): DemoS
   for (const document of normalized.documents) {
     ensureDocumentMetaForDocument(normalized, document);
   }
+  ensureAccountSecurity(normalized);
 
   return normalized;
 }
@@ -207,6 +283,58 @@ function pushHistory(state: DemoState, documentId: string, event: DocumentHistor
   existing.lastUpdated = event.at;
 }
 
+function englishLockType(lockType: SecurityLockType) {
+  return lockType === 'hard' ? 'Hard Lock' : 'Soft Lock';
+}
+
+function lockDurationToMs(duration: '1h' | '24h' | 'manual') {
+  if (duration === '1h') return 60 * 60 * 1000;
+  if (duration === '24h') return 24 * 60 * 60 * 1000;
+  return null;
+}
+
+function pushSecurityTimeline(
+  state: DemoState,
+  title: string,
+  status: RequestStatus = 'in_review'
+) {
+  const requestId = state.requests[0]?.id ?? 'req_trp_1';
+  state.requestTimeline.unshift({
+    id: makeId('rtl'),
+    requestId,
+    status,
+    title,
+    at: new Date().toISOString()
+  });
+  state.requestTimeline = state.requestTimeline.slice(0, 120);
+}
+
+function pushLockHistory(state: DemoState, event: SecurityLockHistoryEvent) {
+  ensureAccountSecurity(state);
+  state.accountSecurity.lockHistory.unshift(event);
+  state.accountSecurity.lockHistory = state.accountSecurity.lockHistory.slice(0, 80);
+}
+
+function pushFailedVerificationAttempt(state: DemoState, event: FailedVerificationAttempt) {
+  ensureAccountSecurity(state);
+  state.accountSecurity.failedVerificationAttempts.unshift(event);
+  state.accountSecurity.failedVerificationAttempts = state.accountSecurity.failedVerificationAttempts.slice(0, 120);
+}
+
+export function isAccountLocked(state: DemoState = getDemoState()) {
+  ensureAccountSecurity(state);
+  return Boolean(state.accountSecurity.isLocked && state.accountSecurity.lockedAt);
+}
+
+export function getCompromisedDocumentIds(state: DemoState = getDemoState()) {
+  ensureAccountSecurity(state);
+  return new Set(state.accountSecurity.compromisedDocuments ?? []);
+}
+
+export function isDocumentCompromised(documentId: string, state: DemoState = getDemoState()) {
+  return getCompromisedDocumentIds(state).has(documentId);
+}
+
 export function setLocale(locale: DemoState['locale']) {
   updateDemoState((state) => {
     state.locale = locale;
@@ -225,6 +353,185 @@ export function setDemoMode(enabled: boolean) {
       return seeded;
     }
     state.demoMode = enabled;
+    return state;
+  });
+}
+
+export function activateEmergencyLock(input: {
+  lockType: SecurityLockType;
+  duration: '1h' | '24h' | 'manual';
+  source?: string;
+}) {
+  const now = new Date();
+  const nowIso = now.toISOString();
+  const lockDuration = lockDurationToMs(input.duration);
+  const lockedUntil = lockDuration ? new Date(now.getTime() + lockDuration).toISOString() : undefined;
+
+  updateDemoState((state) => {
+    ensureAccountSecurity(state);
+
+    state.accountSecurity.isLocked = true;
+    state.accountSecurity.lockType = input.lockType;
+    state.accountSecurity.lockedAt = nowIso;
+    state.accountSecurity.lockDuration = lockDuration ?? undefined;
+    state.accountSecurity.lockedUntil = lockedUntil;
+    state.accountSecurity.lastLockAnimationAt = nowIso;
+
+    if (input.lockType === 'hard') {
+      state.accountSecurity.compromisedDocuments = state.documents.map((document) => document.id);
+    }
+
+    for (const meta of Object.values(state.documentMeta)) {
+      for (const share of meta.shares) {
+        if (share.revoked) continue;
+        share.revoked = true;
+        pushHistory(state, meta.documentId, {
+          id: makeId('dh'),
+          documentId: meta.documentId,
+          type: 'share_revoked',
+          at: nowIso,
+          meta: share.link
+        });
+      }
+    }
+
+    pushLockHistory(state, {
+      id: makeId('sec'),
+      type: 'lock',
+      lockType: input.lockType,
+      at: nowIso,
+      note: input.source ?? 'Emergency lock'
+    });
+
+    pushSecurityTimeline(
+      state,
+      input.lockType === 'hard' ? 'Emergency hard lock activated' : 'Emergency soft lock activated',
+      'in_review'
+    );
+
+    pushVerification(state, {
+      id: makeId('ve'),
+      verifier: 'Citizen App',
+      result: 'invalid',
+      dataShown: `Emergency lock activated (${englishLockType(input.lockType)})`,
+      at: nowIso
+    });
+
+    pushNotification(
+      state,
+      createNotification({
+        type: 'security',
+        title: 'Account temporarily locked',
+        body:
+          input.lockType === 'hard'
+            ? 'Hard lock active. Documents marked as compromised.'
+            : 'Soft lock active. Verification is blocked until unlock.',
+        ctaLabel: 'Open security',
+        ctaHref: '/security'
+      })
+    );
+
+    return state;
+  });
+}
+
+export function unlockEmergencyLock(input: { pin: string; usedFaceId?: boolean; source?: 'manual' | 'auto' } = { pin: '' }) {
+  const current = cloneState(getDemoState());
+  ensureAccountSecurity(current);
+  if (!current.accountSecurity.isLocked) {
+    return { ok: false as const, reason: 'not_locked' as const };
+  }
+
+  const isAuto = input.source === 'auto';
+  if (!isAuto && input.pin !== current.accountSecurity.unlockPin) {
+    return { ok: false as const, reason: 'invalid_pin' as const };
+  }
+
+  const nowIso = new Date().toISOString();
+
+  updateDemoState((state) => {
+    ensureAccountSecurity(state);
+    const previousLockType = state.accountSecurity.lockType;
+
+    state.accountSecurity.isLocked = false;
+    state.accountSecurity.lockedAt = null;
+    state.accountSecurity.lockDuration = undefined;
+    state.accountSecurity.lockedUntil = undefined;
+    state.accountSecurity.lastLockAnimationAt = undefined;
+    if (previousLockType === 'hard') {
+      state.accountSecurity.compromisedDocuments = [];
+    }
+
+    pushLockHistory(state, {
+      id: makeId('sec'),
+      type: isAuto ? 'auto_unlock' : 'unlock',
+      lockType: previousLockType,
+      at: nowIso,
+      note: isAuto ? 'Timed lock expired' : input.usedFaceId ? 'PIN + Face ID' : 'PIN verified'
+    });
+
+    pushSecurityTimeline(state, isAuto ? 'Emergency lock expired automatically' : 'Account unlocked by owner', 'in_review');
+
+    pushVerification(state, {
+      id: makeId('ve'),
+      verifier: 'Citizen App',
+      result: 'valid',
+      dataShown: isAuto ? 'Emergency lock expired automatically' : 'Account successfully unlocked',
+      at: nowIso
+    });
+
+    pushNotification(
+      state,
+      createNotification({
+        type: 'security',
+        title: isAuto ? 'Account auto-unlocked' : 'Account successfully unlocked',
+        body: isAuto
+          ? 'Timed lock expired and access was restored.'
+          : 'Verification and sharing are available again.',
+        ctaLabel: 'Open security',
+        ctaHref: '/security'
+      })
+    );
+
+    return state;
+  });
+
+  return { ok: true as const };
+}
+
+export function syncSecurityLockExpiry() {
+  const state = cloneState(getDemoState());
+  ensureAccountSecurity(state);
+  if (!state.accountSecurity.isLocked || !state.accountSecurity.lockedAt || !state.accountSecurity.lockDuration) {
+    return false;
+  }
+
+  const expiresAt = new Date(state.accountSecurity.lockedAt).getTime() + state.accountSecurity.lockDuration;
+  if (Date.now() < expiresAt) {
+    return false;
+  }
+
+  unlockEmergencyLock({ pin: state.accountSecurity.unlockPin, source: 'auto' });
+  return true;
+}
+
+export function addFailedVerificationAttempt(input: { actor: string; reason: string }) {
+  const nowIso = new Date().toISOString();
+  updateDemoState((state) => {
+    ensureAccountSecurity(state);
+    pushFailedVerificationAttempt(state, {
+      id: makeId('fva'),
+      actor: input.actor,
+      reason: input.reason,
+      at: nowIso
+    });
+    pushVerification(state, {
+      id: makeId('ve'),
+      verifier: input.actor,
+      result: 'invalid',
+      dataShown: input.reason,
+      at: nowIso
+    });
     return state;
   });
 }
@@ -599,6 +906,12 @@ export function addDocumentShare(input: {
   duration: ShareDuration;
   fields: ShareFieldKey[];
 }) {
+  const current = getDemoState();
+  ensureAccountSecurity(current);
+  if (current.accountSecurity.isLocked) {
+    return null;
+  }
+
   const now = new Date();
   const expires = new Date(
     now.getTime() +

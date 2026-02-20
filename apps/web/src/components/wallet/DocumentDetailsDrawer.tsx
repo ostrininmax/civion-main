@@ -55,6 +55,7 @@ const tagOptions: DocumentTag[] = ['identity', 'migration', 'finance', 'health',
 export function DocumentDetailsDrawer({
   open,
   document: selectedDocument,
+  isLocked = false,
   onClose,
   onShareProof,
   onDownloadPdf,
@@ -65,6 +66,7 @@ export function DocumentDetailsDrawer({
 }: {
   open: boolean;
   document: DrawerDocument | null;
+  isLocked?: boolean;
   onClose: () => void;
   onShareProof: (document: DrawerDocument) => Promise<void> | void;
   onDownloadPdf: (document: DrawerDocument) => void;
@@ -287,6 +289,7 @@ export function DocumentDetailsDrawer({
 
         <div className="wallet-drawer-section" data-tour="drawer-share-controls">
           <h4>{t(state.locale, 'wallet.drawer_sharing_controls')}</h4>
+          {isLocked ? <p className="civic-verify-reason">{t(state.locale, 'authority.invalid_locked')}</p> : null}
           <label className="wallet-query-label" htmlFor="share-duration">
             {t(state.locale, 'wallet.drawer_share_duration')}
           </label>
@@ -314,7 +317,7 @@ export function DocumentDetailsDrawer({
           <button
             type="button"
             className="wallet-action wallet-action-primary"
-            disabled={selectedFields.length === 0 || sharePending}
+            disabled={selectedFields.length === 0 || sharePending || isLocked}
             onClick={async () => {
               setSharePending(true);
               try {
@@ -380,7 +383,7 @@ export function DocumentDetailsDrawer({
                 setSharePending(false);
               }
             }}
-            disabled={sharePending}
+            disabled={sharePending || isLocked}
           >
             {sharePending ? t(state.locale, 'wallet.drawer_generating_share') : t(state.locale, 'wallet.action_share_proof')}
           </button>

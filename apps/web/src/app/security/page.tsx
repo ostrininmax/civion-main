@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Section } from '../../components/Section';
+import { EmergencyLockControl } from '../../components/security/EmergencyLockControl';
 import { useDemoState } from '../../lib/storage/use-demo-state';
 import { localizeAuthority, t, ti } from '../../lib/i18n';
 import { useTranslation } from '../../lib/i18n/context';
@@ -26,6 +27,13 @@ function localizeShownData(locale: Parameters<typeof t>[0], value: string) {
   return value;
 }
 
+function localizeLockHistoryType(locale: Parameters<typeof t>[0], type: 'lock' | 'unlock' | 'auto_unlock', lockType?: 'soft' | 'hard') {
+  if (type === 'unlock') return t(locale, 'security.event_unlock');
+  if (type === 'auto_unlock') return t(locale, 'security.event_auto_unlock');
+  const lockTypeLabel = lockType === 'hard' ? t(locale, 'security.lock_type_hard') : t(locale, 'security.lock_type_soft');
+  return ti(locale, 'security.event_lock', { type: lockTypeLabel });
+}
+
 export default function SecurityPage() {
   const state = useDemoState();
   const { locale, t: tt, formatDateTime } = useTranslation();
@@ -34,6 +42,10 @@ export default function SecurityPage() {
 
   return (
     <>
+      <Section title={tt('security.emergency_title')} action={tt('security.action')}>
+        <EmergencyLockControl />
+      </Section>
+
       <Section title={tt('security.title')} action={tt('security.action')}>
         <div className="table-wrap">
           <table className="table">
@@ -59,16 +71,80 @@ export default function SecurityPage() {
         </div>
       </Section>
 
-      <Section title={tt('security.signins_title')} action={tt('security.signins_action')}>
+      <Section title={tt('security.lock_history_title')} action={tt('common.total_count', { count: state.accountSecurity.lockHistory.length })}>
+        {state.accountSecurity.lockHistory.length === 0 ? (
+          <div className="wallet-empty-card">
+            <h3>{tt('security.lock_history_title')}</h3>
+            <p>{tt('notifications.none_desc')}</p>
+          </div>
+        ) : (
+          <div className="table-wrap">
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>{tt('security.event_type')}</th>
+                  <th>{tt('security.reason')}</th>
+                  <th className="mobile-hide">{tt('security.time')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {state.accountSecurity.lockHistory.slice(0, 20).map((event) => (
+                  <tr key={event.id}>
+                    <td>{localizeLockHistoryType(locale, event.type, event.lockType)}</td>
+                    <td>{event.note ?? tt('common.na')}</td>
+                    <td className="mobile-hide">{formatDateTime(event.at)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Section>
+
+      <Section
+        title={tt('security.failed_checks_title')}
+        action={tt('common.total_count', { count: state.accountSecurity.failedVerificationAttempts.length })}
+      >
+        {state.accountSecurity.failedVerificationAttempts.length === 0 ? (
+          <div className="wallet-empty-card">
+            <h3>{tt('security.failed_checks_title')}</h3>
+            <p>{tt('notifications.none_desc')}</p>
+          </div>
+        ) : (
+          <div className="table-wrap">
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>{tt('security.actor')}</th>
+                  <th>{tt('security.reason')}</th>
+                  <th className="mobile-hide">{tt('security.time')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {state.accountSecurity.failedVerificationAttempts.slice(0, 20).map((event) => (
+                  <tr key={event.id}>
+                    <td>{localizeAuthority(locale, event.actor)}</td>
+                    <td>{event.reason}</td>
+                    <td className="mobile-hide">{formatDateTime(event.at)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Section>
+
+      <Section title={tt('security.sessions_title')} action={tt('security.signins_action')}>
         <div className="settings-grid">
-          <article className="settings-card">
-            <div className="badge">{tt('security.web')}</div>
-            <p className="settings-text">Nicosia · Chrome · {formatDateTime(new Date().toISOString())}</p>
-          </article>
-          <article className="settings-card">
-            <div className="badge">{tt('security.mobile')}</div>
-            <p className="settings-text">Larnaca · iOS · {formatDateTime(new Date(Date.now() - 86400000).toISOString())}</p>
-          </article>
+          {state.accountSecurity.deviceSessions.map((session) => (
+            <article key={session.id} className="settings-card">
+              <div className="badge">{session.channel === 'web' ? tt('security.web') : session.channel === 'mobile' ? tt('security.mobile') : tt('security.tablet')}</div>
+              <p className="settings-text">{tt('security.session_device')}: {session.device}</p>
+              <p className="settings-text">{tt('security.session_location')}: {session.location}</p>
+              <p className="settings-text">{tt('security.session_last_seen')}: {formatDateTime(session.lastSeenAt)}</p>
+              <p className="settings-text">{tt('security.session_status')}: {session.active ? tt('security.session_active') : tt('security.session_inactive')}</p>
+            </article>
+          ))}
         </div>
 
         <button

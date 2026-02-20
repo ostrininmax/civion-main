@@ -18,7 +18,7 @@ import {
 } from '../../lib/demo/runtime-store';
 import { useDemoRuntimeState } from '../../lib/demo/use-demo-runtime';
 import { t, ti } from '../../lib/i18n';
-import { resetDemoState } from '../../lib/storage/demo-store';
+import { activateEmergencyLock, addFailedVerificationAttempt, resetDemoState } from '../../lib/storage/demo-store';
 import { useDemoSelector } from '../../lib/storage/use-demo-state';
 import { GuidedTourOverlay } from './GuidedTourOverlay';
 
@@ -199,6 +199,35 @@ export function DemoExperienceLayer() {
                     {scenario.label}
                   </button>
                 ))}
+                <button
+                  type="button"
+                  className="wallet-action"
+                  onClick={() => {
+                    activateEmergencyLock({
+                      lockType: 'hard',
+                      duration: '24h',
+                      source: 'Demo stolen phone simulation'
+                    });
+                    pushDemoToast(t(locale, 'demo.toast.stolen_phone'));
+                    markQaFeedback();
+                  }}
+                >
+                  {t(locale, 'demo.controls.simulate_stolen_phone')}
+                </button>
+                <button
+                  type="button"
+                  className="wallet-action"
+                  onClick={() => {
+                    addFailedVerificationAttempt({
+                      actor: 'Police',
+                      reason: t('en', 'security.unauthorized_attempt')
+                    });
+                    pushDemoToast(t(locale, 'demo.toast.unauthorized_attempt'));
+                    markQaFeedback();
+                  }}
+                >
+                  {t(locale, 'demo.controls.simulate_unauthorized_attempt')}
+                </button>
                 <button
                   type="button"
                   className="wallet-action"

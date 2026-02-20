@@ -3,7 +3,7 @@ import type { LocaleCode } from './models/types';
 
 export type DocumentFilter = 'all' | 'expiring' | 'expired';
 
-export type BaseDocumentLifecycle = 'active' | 'expiring' | 'expired';
+export type BaseDocumentLifecycle = 'active' | 'expiring' | 'expired' | 'compromised';
 export type DocumentLifecycle = BaseDocumentLifecycle | 'in_renewal';
 
 export type DerivedRight = {
@@ -110,6 +110,9 @@ export function maskDocumentNumber(value?: string) {
 }
 
 export function statusPillForLifecycle(lifecycle: DocumentLifecycle, locale: LocaleCode = 'en') {
+  if (lifecycle === 'compromised') {
+    return { label: t(locale, 'wallet.status_compromised'), tone: 'critical' as const };
+  }
   if (lifecycle === 'in_renewal') {
     return { label: t(locale, 'wallet.status_in_renewal'), tone: 'neutral' as const };
   }
@@ -124,12 +127,17 @@ export function statusPillForLifecycle(lifecycle: DocumentLifecycle, locale: Loc
 
 export function deriveRightsForDocument(category: string, lifecycle: BaseDocumentLifecycle, locale: LocaleCode = 'en'): DerivedRight[] {
   const rightIds = RIGHTS_BY_CATEGORY[category] ?? [];
+  const isInactive = lifecycle === 'expired' || lifecycle === 'compromised';
   return rightIds.map((rightId) => ({
     id: rightId,
     label: t(locale, `right.${rightId}`, toSentenceCase(rightId)),
-    active: lifecycle !== 'expired',
+    active: !isInactive,
     sourceCategories: [category],
-    reason: lifecycle === 'expired' ? t(locale, 'wallet.document_expired') : undefined
+    reason: lifecycle === 'compromised'
+      ? t(locale, 'wallet.document_compromised')
+      : lifecycle === 'expired'
+        ? t(locale, 'wallet.document_expired')
+        : undefined
   }));
 }
 

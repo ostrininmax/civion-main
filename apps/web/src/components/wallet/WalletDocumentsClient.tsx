@@ -27,6 +27,7 @@ import type { DocumentTag, LocaleCode, ShareDuration, ShareFieldKey } from '../.
 import {
   addDocumentRenewalHistory,
   addDocumentShare,
+  addFailedVerificationAttempt,
   addVerificationEvent,
   revokeDocumentShare,
   setDocumentInRenewal,
@@ -54,7 +55,9 @@ type WalletViewDocument = {
   filename: string;
   maskedNumber: string;
   baseLifecycle: BaseDocumentLifecycle;
+  rightsLifecycle: BaseDocumentLifecycle;
   displayLifecycle: DocumentLifecycle;
+  isCompromised: boolean;
   reminderDate?: string;
   tag: DocumentTag;
   lastUpdated: string;
@@ -102,6 +105,7 @@ function localizedDocumentStatus(
   locale: LocaleCode,
   lifecycle: DocumentLifecycle
 ) {
+  if (lifecycle === 'compromised') return t(locale, 'wallet.status_compromised');
   if (lifecycle === 'in_renewal') return t(locale, 'wallet.status_in_renewal');
   if (lifecycle === 'expired') return t(locale, 'wallet.status_expired');
   if (lifecycle === 'expiring') return t(locale, 'wallet.status_expiring');
@@ -182,9 +186,15 @@ export function WalletDocumentsClient({
     () =>
       sourceDocuments.map((item) => {
         const baseLifecycle = lifecycleForExpiry(item.expiryDate);
+        const isCompromised = (demoState.accountSecurity.compromisedDocuments ?? []).includes(item.id);
+        const rightsLifecycle: BaseDocumentLifecycle = isCompromised ? 'compromised' : baseLifecycle;
         const displayLifecycle: DocumentLifecycle = demoState.renewalInProgressDocumentIds.includes(item.id)
-          ? 'in_renewal'
-          : baseLifecycle;
+          ? isCompromised
+            ? 'compromised'
+            : 'in_renewal'
+          : isCompromised
+            ? 'compromised'
+            : baseLifecycle;
         const meta = demoState.documentMeta[item.id];
 
         return {
@@ -197,13 +207,15 @@ export function WalletDocumentsClient({
           filename: item.filename,
           maskedNumber: maskDocumentNumber(item.metadata?.documentNumber ?? item.id.slice(-4)),
           baseLifecycle,
+          rightsLifecycle,
           displayLifecycle,
+          isCompromised,
           reminderDate: reminderDateFromExpiry(item.expiryDate),
           tag: meta?.tag ?? 'identity',
           lastUpdated: meta?.lastUpdated ?? item.issueDate ?? new Date().toISOString()
         };
       }),
-    [demoState.documentMeta, demoState.locale, demoState.renewalInProgressDocumentIds, sourceDocuments]
+    [demoState.accountSecurity.compromisedDocuments, demoState.documentMeta, demoState.locale, demoState.renewalInProgressDocumentIds, sourceDocuments]
   );
 
   const expiringSoonCount = useMemo(
@@ -218,7 +230,7 @@ export function WalletDocumentsClient({
   const allRights = useMemo(
     () =>
       deriveAggregateRights(
-        viewDocuments.map((item) => ({ category: item.category, lifecycle: item.baseLifecycle })),
+        viewDocuments.map((item) => ({ category: item.category, lifecycle: item.rightsLifecycle })),
         demoState.locale
       ),
     [demoState.locale, viewDocuments]
@@ -247,6 +259,8 @@ export function WalletDocumentsClient({
   );
 
   const inProgressRenewalsCount = demoState.renewalInProgressDocumentIds.length;
+  const compromisedCount = viewDocuments.filter((item) => item.isCompromised).length;
+  const globalLocked = Boolean(demoState.accountSecurity.isLocked && demoState.accountSecurity.lockedAt);
 
   const selectedDrawerDocument: DrawerDocument | null = selectedDocument
     ? {
@@ -258,7 +272,7 @@ export function WalletDocumentsClient({
         daysRemaining: expiresInDays(selectedDocument.expiryDate),
         statusLabel: localizedDocumentStatus(demoState.locale, selectedDocument.displayLifecycle),
         statusTone: statusPillForLifecycle(selectedDocument.displayLifecycle).tone,
-        linkedRights: deriveRightsForDocument(selectedDocument.category, selectedDocument.baseLifecycle, demoState.locale),
+        linkedRights: deriveRightsForDocument(selectedDocument.category, selectedDocument.rightsLifecycle, demoState.locale),
         tag: demoState.documentMeta[selectedDocument.id]?.tag ?? selectedDocument.tag,
         verifiedByRegistrySync: demoState.documentMeta[selectedDocument.id]?.verifiedByRegistrySync ?? true,
         lastUpdated: demoState.documentMeta[selectedDocument.id]?.lastUpdated ?? selectedDocument.lastUpdated,
@@ -298,11 +312,24 @@ export function WalletDocumentsClient({
   };
 
   const handleShareProof = async (documentItem: DrawerDocument) => {
+    if (globalLocked) {
+      addFailedVerificationAttempt({
+        actor: t('en', 'wallet.verifier_citizen_app'),
+        reason: t('en', 'verify.reason.account_locked')
+      });
+      showToast(t(demoState.locale, 'authority.invalid_locked'));
+      return;
+    }
+
     const share = addDocumentShare({
       documentId: documentItem.id,
       duration: '10m',
       fields: ['status', 'validity']
     });
+    if (!share) {
+      showToast(t(demoState.locale, 'authority.invalid_locked'));
+      return;
+    }
 
     try {
       await navigator.clipboard.writeText(share.link);
@@ -325,11 +352,24 @@ export function WalletDocumentsClient({
   };
 
   const handleGenerateShare = async (documentItem: DrawerDocument, duration: ShareDuration, fields: ShareFieldKey[]) => {
+    if (globalLocked) {
+      addFailedVerificationAttempt({
+        actor: t('en', 'wallet.verifier_citizen_app'),
+        reason: t('en', 'verify.reason.account_locked')
+      });
+      showToast(t(demoState.locale, 'authority.invalid_locked'));
+      return;
+    }
+
     const share = addDocumentShare({
       documentId: documentItem.id,
       duration,
       fields
     });
+    if (!share) {
+      showToast(t(demoState.locale, 'authority.invalid_locked'));
+      return;
+    }
 
     try {
       await navigator.clipboard.writeText(share.link);
@@ -411,6 +451,20 @@ export function WalletDocumentsClient({
       ) : null}
 
       <ActiveRightsCard rights={allRights} />
+
+      {compromisedCount > 0 ? (
+        <div className="card wallet-compromised-banner">
+          <h3>{t(demoState.locale, 'wallet.compromised_banner_title')}</h3>
+          <p>{t(demoState.locale, 'wallet.compromised_banner_desc')}</p>
+          <button
+            type="button"
+            className="wallet-action wallet-action-critical"
+            onClick={() => router.push('/services/national-id-reissue')}
+          >
+            {t(demoState.locale, 'wallet.compromised_banner_action')}
+          </button>
+        </div>
+      ) : null}
 
       <Section title={t(demoState.locale, 'wallet.my_documents')} action={t(demoState.locale, 'wallet.my_documents_action')}>
         <div className="wallet-tools-row">
@@ -563,7 +617,7 @@ export function WalletDocumentsClient({
                             daysRemaining: expiresInDays(item.expiryDate),
                             statusLabel: localizedDocumentStatus(demoState.locale, item.displayLifecycle),
                             statusTone: statusPillForLifecycle(item.displayLifecycle).tone,
-                            linkedRights: deriveRightsForDocument(item.category, item.baseLifecycle, demoState.locale),
+                            linkedRights: deriveRightsForDocument(item.category, item.rightsLifecycle, demoState.locale),
                             tag: item.tag,
                             verifiedByRegistrySync: demoState.documentMeta[item.id]?.verifiedByRegistrySync ?? true,
                             lastUpdated: demoState.documentMeta[item.id]?.lastUpdated ?? item.lastUpdated,
@@ -572,6 +626,7 @@ export function WalletDocumentsClient({
                             history: demoState.documentMeta[item.id]?.history ?? []
                           });
                         }}
+                        disabled={globalLocked || item.isCompromised}
                       >
                         {t(demoState.locale, 'wallet.action_share_proof')}
                       </button>
@@ -607,6 +662,7 @@ export function WalletDocumentsClient({
         onRequestUpdate={handleRequestUpdate}
         onGenerateShare={handleGenerateShare}
         onRevokeShare={handleRevokeShare}
+        isLocked={globalLocked}
         onTagChange={(documentItem, tag) => {
           setDocumentPrimaryTag(documentItem.id, tag);
           showToast(ti(demoState.locale, 'wallet.toast_folder_updated', { tag: localizedTagLabel(demoState.locale, tag) }));

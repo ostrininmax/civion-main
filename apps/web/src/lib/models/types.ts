@@ -16,7 +16,7 @@ export type RequestStatus =
 export type NotificationType = 'expiry' | 'request' | 'message' | 'appointment' | 'security';
 
 export type DocumentTag = 'identity' | 'migration' | 'finance' | 'health' | 'business';
-export type DocumentLifecycle = 'active' | 'expiring_soon' | 'expired' | 'in_renewal';
+export type DocumentLifecycle = 'active' | 'expiring_soon' | 'expired' | 'in_renewal' | 'compromised';
 
 export type ShareDuration = '10m' | '1h' | '24h';
 
@@ -131,6 +131,46 @@ export type VerificationEvent = {
   at: string;
 };
 
+export type SecurityLockType = 'soft' | 'hard';
+
+export type SecurityLockHistoryEvent = {
+  id: string;
+  type: 'lock' | 'unlock' | 'auto_unlock';
+  lockType?: SecurityLockType;
+  at: string;
+  note?: string;
+};
+
+export type FailedVerificationAttempt = {
+  id: string;
+  actor: string;
+  at: string;
+  reason: string;
+};
+
+export type DeviceSession = {
+  id: string;
+  channel: 'web' | 'mobile' | 'tablet';
+  location: string;
+  device: string;
+  lastSeenAt: string;
+  active: boolean;
+};
+
+export type AccountSecurityState = {
+  isLocked: boolean;
+  lockType: SecurityLockType;
+  lockedAt: string | null;
+  lockDuration?: number;
+  lockedUntil?: string;
+  compromisedDocuments?: string[];
+  lockHistory: SecurityLockHistoryEvent[];
+  failedVerificationAttempts: FailedVerificationAttempt[];
+  deviceSessions: DeviceSession[];
+  unlockPin: string;
+  lastLockAnimationAt?: string;
+};
+
 export type UserProfile = {
   fullName: string;
   dateOfBirth: string;
@@ -189,6 +229,7 @@ export type DemoState = {
   appointments: Appointment[];
   notifications: AppNotification[];
   verificationEvents: VerificationEvent[];
+  accountSecurity: AccountSecurityState;
   profile: UserProfile;
   consents: ConsentRecord[];
   documentMeta: Record<string, DocumentMetaState>;

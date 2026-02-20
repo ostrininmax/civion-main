@@ -9,8 +9,9 @@ import { useDemoRuntimeState } from '../../lib/demo/use-demo-runtime';
 import { pushDemoToast, setDemoScenarioToken, setDemoTravelStatus } from '../../lib/demo/runtime-store';
 import { createBenefitPassToken, verifyBenefitPassToken, type BenefitPassTokenResponse } from '../../lib/verification-token';
 import { appendRecentCheck } from '../../lib/recent-checks';
-import { addVerificationEvent, updateDemoState } from '../../lib/storage/demo-store';
+import { addFailedVerificationAttempt, addVerificationEvent, updateDemoState } from '../../lib/storage/demo-store';
 import { t } from '../../lib/i18n';
+import { useDemoSelector } from '../../lib/storage/use-demo-state';
 
 type CheckResult = {
   valid: boolean;
@@ -61,6 +62,7 @@ export function AuthorityCheckClient({
   const runtime = useDemoRuntimeState();
   const router = useRouter();
   const { t: tt, formatDateTime } = useTranslation();
+  const accountSecurity = useDemoSelector((state) => state.accountSecurity);
 
   const [tokenData, setTokenData] = useState<BenefitPassTokenResponse>(runtime.lastGeneratedToken ?? defaultToken());
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
@@ -70,6 +72,7 @@ export function AuthorityCheckClient({
   const [animSuccess, setAnimSuccess] = useState(false);
   const [countdown, setCountdown] = useState(() => formatCountdown(tokenData.expiresAt));
   const splitRef = useRef<HTMLDivElement>(null);
+  const isLocked = Boolean(accountSecurity.isLocked && accountSecurity.lockedAt);
 
   const verification = useMemo(() => verifyBenefitPassToken(tokenData.token), [tokenData.token]);
 
@@ -129,6 +132,32 @@ export function AuthorityCheckClient({
   }, [openFullscreenByDefault]);
 
   const handleScan = () => {
+    if (isLocked) {
+      if (mode === 'border') {
+        setDemoTravelStatus('needs_proof');
+      }
+      setScanResult({
+        valid: false,
+        reason: tt('authority.invalid_locked')
+      });
+
+      if (logVerification) {
+        addFailedVerificationAttempt({
+          actor: mode === 'border' ? 'Border Checkpoint' : 'Police',
+          reason: t('en', 'verify.reason.account_locked')
+        });
+        appendRecentCheck({
+          verifier: mode === 'border' ? 'Border Checkpoint' : 'Police',
+          result: 'Invalid',
+          dataShown: t('en', 'verify.reason.account_locked'),
+          source: 'mock'
+        });
+      }
+
+      pushDemoToast(tt('authority.invalid_locked'));
+      return;
+    }
+
     const tokenCheck = verifyBenefitPassToken(tokenData.token);
     const expiredToken = !tokenCheck.valid || tokenCheck.reason === 'expired';
     const valid = !expiredToken && !permitExpired;
@@ -326,13 +355,13 @@ export function AuthorityCheckClient({
             <button type="button" className="wallet-action wallet-action-primary" onClick={handleScan}>
               {tt('authority.scan_qr')}
             </button>
-            <button type="button" className="wallet-action" onClick={generateNewToken}>
+            <button type="button" className="wallet-action" onClick={generateNewToken} disabled={isLocked}>
               {tt('civic.generate_qr')}
             </button>
-            <button type="button" className="wallet-action wallet-action-soft" onClick={simulateExpiredToken}>
+            <button type="button" className="wallet-action wallet-action-soft" onClick={simulateExpiredToken} disabled={isLocked}>
               {tt('authority.simulate_expired_token')}
             </button>
-            <button type="button" className="wallet-action wallet-action-soft" onClick={simulateExpiredPermit}>
+            <button type="button" className="wallet-action wallet-action-soft" onClick={simulateExpiredPermit} disabled={isLocked}>
               {tt('authority.simulate_expired_permit')}
             </button>
           </div>
@@ -342,10 +371,20 @@ export function AuthorityCheckClient({
               <strong>{scanResult ? (scanResult.valid ? tt('status.valid') : tt('status.invalid')) : tt('authority.waiting_scan')}</strong>
               {animSuccess ? <span className="authority-success-check">✓</span> : null}
             </div>
-            <p>{tt('authority.status_label', { value: permitExpired ? tt('civic.not_eligible') : tt('civic.eligible') })}</p>
-            <p>{tt('authority.validity_label', { value: tokenData.expiresAt.slice(0, 10) })}</p>
-            <p>{tt('authority.issuer_label', { value: verification.issuer ?? tt('verify.unknown_issuer') })}</p>
-            <p className="civic-disclosure-note">{tt('authority.minimal_statement')}</p>
+            {isLocked ? (
+              <>
+                <p>{tt('verify.locked_desc')}</p>
+                {accountSecurity.lockedAt ? <p>{tt('verify.locked_at', { date: formatDateTime(accountSecurity.lockedAt) })}</p> : null}
+                <p className="civic-disclosure-note">{tt('authority.minimal_statement')}</p>
+              </>
+            ) : (
+              <>
+                <p>{tt('authority.status_label', { value: permitExpired ? tt('civic.not_eligible') : tt('civic.eligible') })}</p>
+                <p>{tt('authority.validity_label', { value: tokenData.expiresAt.slice(0, 10) })}</p>
+                <p>{tt('authority.issuer_label', { value: verification.issuer ?? tt('verify.unknown_issuer') })}</p>
+                <p className="civic-disclosure-note">{tt('authority.minimal_statement')}</p>
+              </>
+            )}
             {scanResult?.reason ? <p className="civic-verify-reason">{scanResult.reason}</p> : null}
           </div>
         </article>

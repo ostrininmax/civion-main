@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { Section } from '../../components/Section';
 import { LanguageSwitcher } from '../../components/LanguageSwitcher';
+import { EmergencyLockControl } from '../../components/security/EmergencyLockControl';
 import { resetDemoState, setDemoMode } from '../../lib/storage/demo-store';
 import { resetDemoRuntimeState, setQaMode } from '../../lib/demo/runtime-store';
 import { useDemoState } from '../../lib/storage/use-demo-state';
@@ -79,6 +80,7 @@ export default function SettingsPage() {
               <Link href="/security" className="section-action-link">
                 {t('settings.security')}
               </Link>
+              <EmergencyLockControl compact />
             </div>
           </article>
         </div>
