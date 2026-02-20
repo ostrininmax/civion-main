@@ -7,6 +7,8 @@ import { runDemoScenarioStep } from '../../lib/demo/engine';
 import { stopGuidedTour, setGuidedTourStep, startGuidedTour } from '../../lib/demo/runtime-store';
 import { useDemoRuntimeState } from '../../lib/demo/use-demo-runtime';
 import { useDemoSelector } from '../../lib/storage/use-demo-state';
+import type { LocaleCode } from '../../lib/models/types';
+import { normalizeLocale, t as translate } from '../../lib/i18n';
 import { useTranslation } from '../../lib/i18n/context';
 
 type RectLike = {
@@ -67,10 +69,22 @@ function isRenderableTarget(element: HTMLElement | null): element is HTMLElement
   return rect.width >= 8 && rect.height >= 8;
 }
 
+function resolveDeviceLocale(): LocaleCode | null {
+  if (typeof navigator === 'undefined') return null;
+  const candidates = [...(navigator.languages ?? []), navigator.language].filter(Boolean);
+  for (const candidate of candidates) {
+    const short = candidate.toLowerCase().split('-')[0];
+    if (short === 'en' || short === 'el' || short === 'ru' || short === 'uk' || short === 'hi' || short === 'ar') {
+      return normalizeLocale(short);
+    }
+  }
+  return null;
+}
+
 export function GuidedTourOverlay() {
   const runtime = useDemoRuntimeState();
   const locale = useDemoSelector((state) => state.locale);
-  const { t } = useTranslation();
+  const { locale: appLocale } = useTranslation();
   const router = useRouter();
   const pathname = usePathname();
   const [targetRect, setTargetRect] = useState<RectLike | null>(null);
@@ -85,6 +99,8 @@ export function GuidedTourOverlay() {
   const steps = scenario?.steps ?? [];
   const stepIndex = clamp(runtime.tour.stepIndex, 0, Math.max(steps.length - 1, 0));
   const step = steps[stepIndex] ?? null;
+  const textLocale = useMemo(() => (runtime.tour.active ? resolveDeviceLocale() ?? appLocale : appLocale), [appLocale, runtime.tour.active]);
+  const tt = (key: string) => translate(textLocale, key);
 
   useEffect(() => {
     if (!runtime.tour.active || !step || !scenario) return;
@@ -261,7 +277,7 @@ export function GuidedTourOverlay() {
   };
 
   return (
-    <div className="demo-tour-overlay" role="dialog" aria-modal="true" aria-label={t('demo.tour.title')}>
+    <div className="demo-tour-overlay" role="dialog" aria-modal="true" aria-label={tt('demo.tour.title')}>
       {spotlightRect ? (
         <div
           className="demo-tour-spotlight"
@@ -281,13 +297,13 @@ export function GuidedTourOverlay() {
         <div className="demo-tour-head">
           <p className="mono">{progressLabel}</p>
           <button type="button" className="wallet-action wallet-action-soft demo-tour-btn-skip" onClick={() => stopGuidedTour()}>
-            {t('demo.tour.skip')}
+            {tt('demo.tour.skip')}
           </button>
         </div>
 
-        <h3>{t(step.titleKey)}</h3>
-        <p>{t(step.bodyKey)}</p>
-        {targetMissing ? <p className="demo-tour-warning">{t('demo.tour.target_missing')}</p> : null}
+        <h3>{tt(step.titleKey)}</h3>
+        <p>{tt(step.bodyKey)}</p>
+        {targetMissing ? <p className="demo-tour-warning">{tt('demo.tour.target_missing')}</p> : null}
 
         <div className="demo-tour-actions">
           <button
@@ -296,13 +312,13 @@ export function GuidedTourOverlay() {
             onClick={handleBack}
             disabled={stepIndex === 0}
           >
-            {t('common.back')}
+            {tt('common.back')}
           </button>
           <button type="button" className="wallet-action demo-tour-btn-restart" onClick={() => startGuidedTour('guided-tour', 0)}>
-            {t('demo.tour.restart')}
+            {tt('demo.tour.restart')}
           </button>
           <button type="button" className="wallet-action wallet-action-primary demo-tour-btn-next" onClick={handleNext}>
-            {stepIndex >= steps.length - 1 ? t('demo.tour.finish') : t('demo.tour.next')}
+            {stepIndex >= steps.length - 1 ? tt('demo.tour.finish') : tt('demo.tour.next')}
           </button>
         </div>
       </div>
