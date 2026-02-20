@@ -2874,6 +2874,49 @@ a,
   box-shadow: 0 0 0 2px rgba(72, 108, 235, 0.5), 0 0 0 6px rgba(72, 108, 235, 0.16) !important;
 }
 
+@media (max-width: 900px) {
+  .onboarding-card-wrap {
+    left: 10px !important;
+    right: 10px;
+    width: auto;
+    top: auto !important;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 106px);
+  }
+
+  .onboarding-tour-card {
+    max-height: min(38vh, 320px);
+    overflow: auto;
+    padding: 12px;
+    gap: 6px;
+    border-radius: 14px;
+  }
+
+  .onboarding-tour-card h3 {
+    font-size: 18px;
+  }
+
+  .onboarding-tour-card p {
+    font-size: 14px;
+  }
+
+  .onboarding-tour-card .wallet-action {
+    min-height: 38px;
+    padding: 8px 14px;
+  }
+
+  .onboarding-tour-actions {
+    position: sticky;
+    bottom: -12px;
+    padding-top: 8px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, #fff 34%);
+  }
+
+  .onboarding-tour-cta-row {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+}
+
 .authority-layout {
   display: grid;
   gap: 12px;

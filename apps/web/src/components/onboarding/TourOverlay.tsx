@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
+import type { LocaleCode } from '../../lib/models/types';
 import { onboardingTourSteps } from '../../lib/onboarding/tourSteps';
 import {
   ONBOARDING_COMMAND_EVENT,
@@ -22,6 +23,7 @@ import {
   waitForSelector,
   type TourPlacement
 } from '../../lib/onboarding/tourEngine';
+import { normalizeLocale, t as translate, ti as translateWithVars } from '../../lib/i18n';
 import { useTranslation } from '../../lib/i18n/context';
 import { TourCard } from './TourCard';
 
@@ -102,16 +104,31 @@ function isTypingTarget(target: EventTarget | null) {
   return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
 }
 
+function resolveDeviceLocale(): LocaleCode | null {
+  if (typeof navigator === 'undefined') return null;
+  const candidates = [...(navigator.languages ?? []), navigator.language].filter(Boolean);
+
+  for (const candidate of candidates) {
+    const normalized = candidate.toLowerCase().split('-')[0];
+    if (normalized === 'en' || normalized === 'el' || normalized === 'ru' || normalized === 'uk' || normalized === 'hi' || normalized === 'ar') {
+      return normalizeLocale(normalized);
+    }
+  }
+
+  return null;
+}
+
 export function TourOverlay() {
   const pathname = usePathname();
   const router = useRouter();
-  const { t } = useTranslation();
+  const { t, locale: appLocale } = useTranslation();
 
   const [active, setActive] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
   const [targetRect, setTargetRect] = useState<RectLike | null>(null);
   const [targetMissing, setTargetMissing] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [tourLocale, setTourLocale] = useState<LocaleCode>(appLocale);
 
   const hasAutoCheckedRef = useRef(false);
   const runCounterRef = useRef(0);
@@ -208,6 +225,7 @@ export function TourOverlay() {
       const currentStep = steps[normalizedIndex];
       const context = createOnboardingActionContext();
       context.ensureDemoData();
+      setTourLocale(source === 'auto' ? resolveDeviceLocale() ?? appLocale : appLocale);
 
       if (resetCompleted) {
         setOnboardingCompleted(false);
@@ -227,7 +245,7 @@ export function TourOverlay() {
         source
       });
     },
-    [steps]
+    [appLocale, steps]
   );
 
   const handleBack = useCallback(() => {
@@ -395,6 +413,12 @@ export function TourOverlay() {
 
   useEffect(() => () => detachTarget(), [detachTarget]);
 
+  const hideSpotlightOnMobile = useMemo(() => {
+    if (!targetRect || typeof window === 'undefined') return false;
+    if (window.innerWidth > 900) return false;
+    return targetRect.height > window.innerHeight * 0.46;
+  }, [targetRect]);
+
   const overlayPosition = useMemo(() => {
     const cardWidth = 400;
     const cardHeight = step?.id === 'finish' ? 310 : 250;
@@ -405,11 +429,15 @@ export function TourOverlay() {
     return null;
   }
 
-  const progressLabel = t('onboarding.progress', { current: safeStepIndex + 1, total: steps.length });
+  const tt = (key: string, fallback?: string) => translate(tourLocale, key, fallback);
+  const tti = (key: string, vars: Record<string, string | number>, fallback?: string) =>
+    translateWithVars(tourLocale, key, vars, fallback);
+
+  const progressLabel = tti('onboarding.progress', { current: safeStepIndex + 1, total: steps.length });
 
   return (
     <div className="onboarding-overlay" aria-live="polite">
-      {targetRect ? (
+      {targetRect && !hideSpotlightOnMobile ? (
         <div
           className="onboarding-spotlight"
           style={{
@@ -430,15 +458,15 @@ export function TourOverlay() {
       >
         <TourCard
           ref={cardRef}
-          title={t(step.titleKey)}
-          body={t(step.bodyKey)}
+          title={tt(step.titleKey)}
+          body={tt(step.bodyKey)}
           progressLabel={progressLabel}
-          nextLabel={t('onboarding.next')}
-          finishLabel={t('onboarding.finish')}
-          backLabel={t('common.back')}
-          skipLabel={t('onboarding.skip')}
-          restartLabel={t('onboarding.restart')}
-          targetMissingLabel={targetMissing ? t('onboarding.target_missing') : undefined}
+          nextLabel={tt('onboarding.next')}
+          finishLabel={tt('onboarding.finish')}
+          backLabel={tt('common.back')}
+          skipLabel={tt('onboarding.skip')}
+          restartLabel={tt('onboarding.restart')}
+          targetMissingLabel={targetMissing ? tt('onboarding.target_missing') : undefined}
           isFinalStep={step.id === 'finish'}
           canSkip={step.canSkip !== false}
           canBack={safeStepIndex > 0}
@@ -452,9 +480,9 @@ export function TourOverlay() {
           onGoDocuments={() => completeTour('/wallet')}
           onGoCivicCard={() => completeTour('/civic-card')}
           onClose={() => completeTour()}
-          goDocumentsLabel={t('onboarding.go_documents')}
-          openCivicCardLabel={t('onboarding.open_civic_card')}
-          closeLabel={t('onboarding.close_tour')}
+          goDocumentsLabel={tt('onboarding.go_documents')}
+          openCivicCardLabel={tt('onboarding.open_civic_card')}
+          closeLabel={tt('onboarding.close_tour')}
         />
       </div>
     </div>
