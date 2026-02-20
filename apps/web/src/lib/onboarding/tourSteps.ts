@@ -80,8 +80,8 @@ export const onboardingTourSteps: OnboardingStep[] = [
   {
     id: 'requests',
     route: '/timeline',
-    target: '[data-tour="requests-tracker"]',
-    waitForSelector: '[data-tour="requests-tracker"]',
+    target: '[data-tour="requests-list"]',
+    waitForSelector: '[data-tour="requests-list"]',
     placement: 'top',
     titleKey: 'onboarding.step8.title',
     bodyKey: 'onboarding.step8.body',

@@ -25,7 +25,7 @@ export function RequestTracker() {
             </Link>
           </div>
         ) : (
-          <div className="request-grid">
+          <div className="request-grid" data-tour="requests-list">
             {requests.map((request) => (
               <article key={request.id} className="request-card">
                 <div className="request-card-head">

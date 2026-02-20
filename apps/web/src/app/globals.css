@@ -2879,41 +2879,47 @@ a,
     left: 10px !important;
     right: 10px;
     width: auto;
-    top: auto !important;
-    bottom: calc(env(safe-area-inset-bottom, 0px) + 106px);
   }
 
   .onboarding-tour-card {
-    max-height: min(38vh, 320px);
+    max-height: min(31vh, 248px);
     overflow: auto;
-    padding: 12px;
+    padding: 10px 12px;
     gap: 6px;
-    border-radius: 14px;
+    border-radius: 12px;
   }
 
   .onboarding-tour-card h3 {
-    font-size: 18px;
+    font-size: 17px;
+    line-height: 1.15;
   }
 
   .onboarding-tour-card p {
-    font-size: 14px;
+    font-size: 13px;
+    line-height: 1.35;
   }
 
   .onboarding-tour-card .wallet-action {
-    min-height: 38px;
-    padding: 8px 14px;
+    min-height: 34px;
+    padding: 7px 12px;
+    font-size: 13px;
   }
 
   .onboarding-tour-actions {
-    position: sticky;
-    bottom: -12px;
-    padding-top: 8px;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, #fff 34%);
+    margin-top: 2px;
   }
 
   .onboarding-tour-cta-row {
     display: grid;
     grid-template-columns: 1fr;
+  }
+
+  .onboarding-spotlight {
+    animation: none;
+    transition: none;
+    border-radius: 12px;
+    border-width: 1.5px;
+    box-shadow: 0 0 0 9999px rgba(9, 14, 28, 0.58), 0 0 0 4px rgba(82, 125, 244, 0.12);
   }
 }
 

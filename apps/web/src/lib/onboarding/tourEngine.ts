@@ -257,8 +257,9 @@ export function waitForSelector(selector: string, timeoutMs = 5000): Promise<HTM
 }
 
 export function smoothScrollToElement(element: HTMLElement) {
+  const isMobileViewport = typeof window !== 'undefined' && window.innerWidth <= 900;
   element.scrollIntoView({
-    behavior: 'smooth',
+    behavior: isMobileViewport ? 'auto' : 'smooth',
     block: 'center',
     inline: 'center'
   });

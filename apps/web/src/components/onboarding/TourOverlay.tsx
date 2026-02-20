@@ -53,9 +53,23 @@ function normalizeIndex(index: number, total: number) {
 function resolvePlacement(rect: RectLike | null, placement: TourPlacement, width: number, height: number): PlacementPosition {
   const viewportWidth = typeof window === 'undefined' ? 1440 : window.innerWidth;
   const viewportHeight = typeof window === 'undefined' ? 900 : window.innerHeight;
+  const isMobileViewport = viewportWidth <= 900;
   const safeWidth = Math.min(width, viewportWidth - 20);
   const safeHeight = Math.min(height, viewportHeight - 20);
   const margin = 14;
+
+  if (isMobileViewport) {
+    const topSafe = 74;
+    const bottomSafe = 132;
+    const shouldPlaceBottom = Boolean(rect && rect.top < viewportHeight * 0.42);
+
+    return {
+      top: shouldPlaceBottom
+        ? clamp(viewportHeight - safeHeight - bottomSafe, topSafe, Math.max(topSafe, viewportHeight - safeHeight - 12))
+        : topSafe,
+      left: 10
+    };
+  }
 
   if (!rect) {
     return {
@@ -384,7 +398,7 @@ export function TourOverlay() {
 
       if (target) {
         smoothScrollToElement(target);
-        await sleep(200);
+        await sleep(window.innerWidth <= 900 ? 80 : 200);
         if (cancelled || runId !== runCounterRef.current) return;
         attachTarget(target);
       } else {
@@ -416,7 +430,35 @@ export function TourOverlay() {
   const hideSpotlightOnMobile = useMemo(() => {
     if (!targetRect || typeof window === 'undefined') return false;
     if (window.innerWidth > 900) return false;
-    return targetRect.height > window.innerHeight * 0.46;
+    return false;
+  }, [targetRect]);
+
+  const spotlightRect = useMemo(() => {
+    if (!targetRect) return null;
+    if (typeof window === 'undefined' || window.innerWidth > 900) {
+      return {
+        top: Math.max(8, targetRect.top - 8),
+        left: Math.max(8, targetRect.left - 8),
+        width: targetRect.width + 16,
+        height: targetRect.height + 16
+      };
+    }
+
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    const maxWidth = viewportWidth - 24;
+    const maxHeight = Math.min(196, Math.round(viewportHeight * 0.32));
+    const baseWidth = Math.min(targetRect.width + 16, maxWidth);
+    const baseHeight = Math.min(targetRect.height + 16, maxHeight);
+    const focusTop = clamp(targetRect.top + 8, 8, Math.max(8, viewportHeight - baseHeight - 84));
+    const focusLeft = clamp(targetRect.left + (targetRect.width + 16 - baseWidth) / 2, 8, Math.max(8, viewportWidth - baseWidth - 8));
+
+    return {
+      top: focusTop,
+      left: focusLeft,
+      width: baseWidth,
+      height: baseHeight
+    };
   }, [targetRect]);
 
   const overlayPosition = useMemo(() => {
@@ -437,14 +479,14 @@ export function TourOverlay() {
 
   return (
     <div className="onboarding-overlay" aria-live="polite">
-      {targetRect && !hideSpotlightOnMobile ? (
+      {targetRect && spotlightRect && !hideSpotlightOnMobile ? (
         <div
           className="onboarding-spotlight"
           style={{
-            top: `${Math.max(8, targetRect.top - 8)}px`,
-            left: `${Math.max(8, targetRect.left - 8)}px`,
-            width: `${targetRect.width + 16}px`,
-            height: `${targetRect.height + 16}px`
+            top: `${spotlightRect.top}px`,
+            left: `${spotlightRect.left}px`,
+            width: `${spotlightRect.width}px`,
+            height: `${spotlightRect.height}px`
           }}
           aria-hidden
         />
