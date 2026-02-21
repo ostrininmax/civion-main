@@ -1385,6 +1385,8 @@ const extraEn: Dictionary = {
   'onboarding.go_documents': 'Go to Documents',
   'onboarding.open_civic_card': 'Open Civic Card',
   'onboarding.close_tour': 'Close tour',
+  'onboarding.language.title': 'Choose your language',
+  'onboarding.language.body': 'Select any language you prefer. The rest of this tour will continue in the language you choose.',
   'onboarding.step1.title': 'Welcome to BenefitPass',
   'onboarding.step1.body':
     'Welcome to BenefitPass. This app helps you store verified documents, prove your status instantly, and access public services without paperwork.',

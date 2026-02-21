@@ -23,7 +23,7 @@ import {
   waitForSelector,
   type TourPlacement
 } from '../../lib/onboarding/tourEngine';
-import { normalizeLocale, t as translate, ti as translateWithVars } from '../../lib/i18n';
+import { t as translate, ti as translateWithVars } from '../../lib/i18n';
 import { useTranslation } from '../../lib/i18n/context';
 import { TourCard } from './TourCard';
 
@@ -118,20 +118,6 @@ function isTypingTarget(target: EventTarget | null) {
   return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
 }
 
-function resolveDeviceLocale(): LocaleCode | null {
-  if (typeof navigator === 'undefined') return null;
-  const candidates = [...(navigator.languages ?? []), navigator.language].filter(Boolean);
-
-  for (const candidate of candidates) {
-    const normalized = candidate.toLowerCase().split('-')[0];
-    if (normalized === 'en' || normalized === 'el' || normalized === 'ru' || normalized === 'uk' || normalized === 'hi' || normalized === 'ar') {
-      return normalizeLocale(normalized);
-    }
-  }
-
-  return null;
-}
-
 export function TourOverlay() {
   const pathname = usePathname();
   const router = useRouter();
@@ -142,7 +128,6 @@ export function TourOverlay() {
   const [targetRect, setTargetRect] = useState<RectLike | null>(null);
   const [targetMissing, setTargetMissing] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [tourLocale, setTourLocale] = useState<LocaleCode>(appLocale);
 
   const hasAutoCheckedRef = useRef(false);
   const runCounterRef = useRef(0);
@@ -239,7 +224,6 @@ export function TourOverlay() {
       const currentStep = steps[normalizedIndex];
       const context = createOnboardingActionContext();
       context.ensureDemoData();
-      setTourLocale(source === 'auto' ? resolveDeviceLocale() ?? appLocale : appLocale);
 
       if (resetCompleted) {
         setOnboardingCompleted(false);
@@ -259,7 +243,7 @@ export function TourOverlay() {
         source
       });
     },
-    [appLocale, steps]
+    [steps]
   );
 
   const handleBack = useCallback(() => {
@@ -471,9 +455,10 @@ export function TourOverlay() {
     return null;
   }
 
-  const tt = (key: string, fallback?: string) => translate(tourLocale, key, fallback);
+  const stepLocale: LocaleCode = step.id === 'language-picker' ? 'en' : appLocale;
+  const tt = (key: string, fallback?: string) => translate(stepLocale, key, fallback);
   const tti = (key: string, vars: Record<string, string | number>, fallback?: string) =>
-    translateWithVars(tourLocale, key, vars, fallback);
+    translateWithVars(stepLocale, key, vars, fallback);
 
   const progressLabel = tti('onboarding.progress', { current: safeStepIndex + 1, total: steps.length });
 

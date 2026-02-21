@@ -8,6 +8,16 @@ const ensureOnly = {
 
 export const onboardingTourSteps: OnboardingStep[] = [
   {
+    id: 'language-picker',
+    route: '/',
+    target: '[data-tour="language-switcher"]',
+    waitForSelector: '[data-tour="language-switcher"]',
+    placement: 'bottom',
+    titleKey: 'onboarding.language.title',
+    bodyKey: 'onboarding.language.body',
+    ...ensureOnly
+  },
+  {
     id: 'welcome',
     route: '/',
     target: '[data-tour="dashboard-main"]',

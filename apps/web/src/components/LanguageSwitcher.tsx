@@ -16,10 +16,11 @@ export function LanguageSwitcher({ compact = false }: { compact?: boolean }) {
   const { locale, setLocale } = useTranslation();
 
   return (
-    <label className={compact ? 'language-switcher language-switcher-compact' : 'language-switcher'}>
+    <label className={compact ? 'language-switcher language-switcher-compact' : 'language-switcher'} data-tour="language-switcher">
       {compact ? null : <span className="wallet-query-label">Language</span>}
       <select
         aria-label="Language"
+        data-tour="language-switcher-select"
         className="wallet-field language-select"
         value={locale}
         onChange={(event) => setLocale(event.target.value as LocaleCode)}
