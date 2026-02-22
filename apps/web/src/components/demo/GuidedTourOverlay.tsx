@@ -263,12 +263,15 @@ export function GuidedTourOverlay() {
   const mobileViewport = viewportWidth <= 900;
   const spotlightRect = useMemo(() => {
     if (!targetRect) return null;
+    const languageStep = step?.id === 'tour-language';
+    const desktopPadding = languageStep ? 4 : 8;
+    const mobilePadding = languageStep ? 6 : 18;
 
     if (!mobileViewport) {
       const maxWidth = Math.max(140, Math.round(viewportWidth * 0.9));
       const maxHeight = Math.max(90, Math.round(viewportHeight * 0.62));
-      const width = Math.min(targetRect.width + 16, maxWidth);
-      const height = Math.min(targetRect.height + 16, maxHeight);
+      const width = Math.min(targetRect.width + desktopPadding * 2, maxWidth);
+      const height = Math.min(targetRect.height + desktopPadding * 2, maxHeight);
       const minTop = viewport.offsetTop + 8;
       const maxTop = viewport.offsetTop + viewportHeight - height - 8;
       const minLeft = viewport.offsetLeft + 8;
@@ -285,8 +288,8 @@ export function GuidedTourOverlay() {
 
     const maxWidth = Math.max(84, viewportWidth - 16);
     const maxHeight = Math.max(72, Math.round(viewportHeight * 0.46));
-    const width = clamp(targetRect.width + 18, Math.min(120, maxWidth), maxWidth);
-    const height = clamp(targetRect.height + 18, Math.min(58, maxHeight), maxHeight);
+    const width = clamp(targetRect.width + mobilePadding, Math.min(120, maxWidth), maxWidth);
+    const height = clamp(targetRect.height + mobilePadding, Math.min(58, maxHeight), maxHeight);
     const minTop = viewport.offsetTop + 8;
     const maxTop = viewport.offsetTop + viewportHeight - height - 8;
     const minLeft = viewport.offsetLeft + 8;
@@ -299,7 +302,7 @@ export function GuidedTourOverlay() {
       width,
       height
     };
-  }, [mobileViewport, targetRect, viewport.offsetLeft, viewport.offsetTop, viewportHeight, viewportWidth]);
+  }, [mobileViewport, step?.id, targetRect, viewport.offsetLeft, viewport.offsetTop, viewportHeight, viewportWidth]);
 
   const resolvedPopoverHeight = Math.max(164, popoverHeight);
   const popoverWidth = mobileViewport ? Math.min(440, viewportWidth - 20) : Math.min(380, viewportWidth - 24);

@@ -10,8 +10,8 @@ export const onboardingTourSteps: OnboardingStep[] = [
   {
     id: 'language-picker',
     route: '/',
-    target: '[data-tour="language-switcher"]',
-    waitForSelector: '[data-tour="language-switcher"]',
+    target: '[data-tour="language-switcher-select"]',
+    waitForSelector: '[data-tour="language-switcher-select"]',
     placement: 'bottom',
     titleKey: 'onboarding.language.title',
     bodyKey: 'onboarding.language.body',

@@ -419,12 +419,15 @@ export function TourOverlay() {
 
   const spotlightRect = useMemo(() => {
     if (!targetRect) return null;
+    const languageStep = step?.id === 'language-picker';
+    const desktopPadding = languageStep ? 4 : 8;
+    const mobilePadding = languageStep ? 6 : 16;
     if (typeof window === 'undefined' || window.innerWidth > 900) {
       return {
-        top: Math.max(8, targetRect.top - 8),
-        left: Math.max(8, targetRect.left - 8),
-        width: targetRect.width + 16,
-        height: targetRect.height + 16
+        top: Math.max(desktopPadding, targetRect.top - desktopPadding),
+        left: Math.max(desktopPadding, targetRect.left - desktopPadding),
+        width: targetRect.width + desktopPadding * 2,
+        height: targetRect.height + desktopPadding * 2
       };
     }
 
@@ -432,8 +435,8 @@ export function TourOverlay() {
     const viewportHeight = window.innerHeight;
     const maxWidth = viewportWidth - 24;
     const maxHeight = Math.min(196, Math.round(viewportHeight * 0.32));
-    const baseWidth = Math.min(targetRect.width + 16, maxWidth);
-    const baseHeight = Math.min(targetRect.height + 16, maxHeight);
+    const baseWidth = Math.min(targetRect.width + mobilePadding, maxWidth);
+    const baseHeight = Math.min(targetRect.height + mobilePadding, maxHeight);
     const focusTop = clamp(targetRect.top + 8, 8, Math.max(8, viewportHeight - baseHeight - 84));
     const focusLeft = clamp(targetRect.left + (targetRect.width + 16 - baseWidth) / 2, 8, Math.max(8, viewportWidth - baseWidth - 8));
 
@@ -443,7 +446,7 @@ export function TourOverlay() {
       width: baseWidth,
       height: baseHeight
     };
-  }, [targetRect]);
+  }, [step?.id, targetRect]);
 
   const overlayPosition = useMemo(() => {
     const cardWidth = 400;
