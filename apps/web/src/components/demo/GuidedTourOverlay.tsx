@@ -279,7 +279,8 @@ export function GuidedTourOverlay() {
     let attempts = 0;
     const locateTarget = () => {
       if (cancelled) return;
-      const element = document.querySelector(step.target ?? '') as HTMLElement | null;
+      const candidates = Array.from(document.querySelectorAll(step.target ?? '')) as HTMLElement[];
+      const element = candidates.find((candidate) => isRenderableTarget(candidate)) ?? null;
       if (isRenderableTarget(element)) {
         attachTarget(element);
         return;

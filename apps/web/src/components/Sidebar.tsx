@@ -10,17 +10,43 @@ type NavItem = {
   href: string;
   key: string;
   matches: string[];
+  tourDesktop: string;
+  tourMobile: string;
 };
 
 const nav: NavItem[] = [
-  { href: '/', key: 'nav.feed', matches: ['/'] },
-  { href: '/wallet', key: 'nav.documents', matches: ['/wallet'] },
-  { href: '/services', key: 'nav.services', matches: ['/services', '/processes'] },
-  { href: '/timeline', key: 'nav.timeline', matches: ['/timeline'] },
-  { href: '/inbox', key: 'nav.inbox', matches: ['/inbox'] },
-  { href: '/appointments', key: 'nav.appointments', matches: ['/appointments'] },
-  { href: '/civic-card', key: 'nav.civic_card', matches: ['/civic-card', '/verify'] },
-  { href: '/settings', key: 'nav.menu', matches: ['/settings', '/notifications', '/security', '/consents', '/profile'] }
+  { href: '/', key: 'nav.feed', matches: ['/'], tourDesktop: 'sidebar-feed', tourMobile: 'mobile-nav-feed' },
+  { href: '/wallet', key: 'nav.documents', matches: ['/wallet'], tourDesktop: 'sidebar-documents', tourMobile: 'mobile-nav-documents' },
+  {
+    href: '/services',
+    key: 'nav.services',
+    matches: ['/services', '/processes'],
+    tourDesktop: 'sidebar-services',
+    tourMobile: 'mobile-nav-services'
+  },
+  { href: '/timeline', key: 'nav.timeline', matches: ['/timeline'], tourDesktop: 'sidebar-timeline', tourMobile: 'mobile-nav-timeline' },
+  { href: '/inbox', key: 'nav.inbox', matches: ['/inbox'], tourDesktop: 'sidebar-inbox', tourMobile: 'mobile-nav-inbox' },
+  {
+    href: '/appointments',
+    key: 'nav.appointments',
+    matches: ['/appointments'],
+    tourDesktop: 'sidebar-appointments',
+    tourMobile: 'mobile-nav-appointments'
+  },
+  {
+    href: '/civic-card',
+    key: 'nav.civic_card',
+    matches: ['/civic-card', '/verify'],
+    tourDesktop: 'sidebar-civic-card',
+    tourMobile: 'mobile-nav-civic-card'
+  },
+  {
+    href: '/settings',
+    key: 'nav.menu',
+    matches: ['/settings', '/notifications', '/security', '/consents', '/profile'],
+    tourDesktop: 'sidebar-menu',
+    tourMobile: 'mobile-nav-menu'
+  }
 ];
 
 function isActive(pathname: string, item: NavItem) {
@@ -35,7 +61,10 @@ export function Sidebar() {
   const { t: tt } = useTranslation();
   const lastTouchNavigationAt = useRef(0);
   const navItems = useMemo(
-    () => (demoMode ? [...nav, { href: '/qa', key: 'nav.qa', matches: ['/qa'] }] : nav),
+    () =>
+      demoMode
+        ? [...nav, { href: '/qa', key: 'nav.qa', matches: ['/qa'], tourDesktop: 'sidebar-qa', tourMobile: 'mobile-nav-qa' }]
+        : nav,
     [demoMode]
   );
 
@@ -63,7 +92,12 @@ export function Sidebar() {
           {navItems.map((item) => {
             const active = isActive(pathname, item);
             return (
-              <Link key={item.href} href={item.href} className={`sidebar-link ${active ? 'sidebar-link-active' : ''}`}>
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`sidebar-link ${active ? 'sidebar-link-active' : ''}`}
+                data-tour={item.tourDesktop}
+              >
                 <span>{tt(item.key)}</span>
                 {item.href === '/inbox' ? (
                   <span className="sidebar-pill">{inboxUnread}</span>
@@ -81,6 +115,7 @@ export function Sidebar() {
               key={item.href}
               type="button"
               className={`app-nav-mobile-item ${active ? 'app-nav-mobile-item-active' : ''}`}
+              data-tour={item.tourMobile}
               aria-current={active ? 'page' : undefined}
               onTouchEnd={(event) => {
                 event.preventDefault();

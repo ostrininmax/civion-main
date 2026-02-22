@@ -75,85 +75,70 @@ export const DEMO_SCENARIOS: Record<string, DemoScenario> = {
         id: 'tour-step-1',
         titleKey: 'demo.tour.step1.title',
         bodyKey: 'demo.tour.step1.body',
-        target: '[data-tour="wallet-registry-sync"]',
-        actions: [{ type: 'goTo', path: '/wallet' }]
+        target: '[data-tour="sidebar-feed"], [data-tour="mobile-nav-feed"]',
+        actions: [{ type: 'goTo', path: '/' }]
       },
       {
         id: 'tour-step-2',
         titleKey: 'demo.tour.step2.title',
         bodyKey: 'demo.tour.step2.body',
-        target: '[data-tour="drawer-document-head"]',
-        actions: [
-          { type: 'goTo', path: '/wallet?filter=expiring' },
-          { type: 'openDocument', documentId: 'doc-residence' }
-        ]
+        target: '[data-tour="sidebar-documents"], [data-tour="mobile-nav-documents"]',
+        actions: [{ type: 'goTo', path: '/wallet' }]
       },
       {
         id: 'tour-step-3',
         titleKey: 'demo.tour.step3.title',
         bodyKey: 'demo.tour.step3.body',
-        target: '[data-tour="drawer-share-controls"]'
+        target: '[data-tour="sidebar-services"], [data-tour="mobile-nav-services"]',
+        actions: [{ type: 'goTo', path: '/services' }]
       },
       {
         id: 'tour-step-4',
         titleKey: 'demo.tour.step4.title',
         bodyKey: 'demo.tour.step4.body',
-        target: '[data-tour="civic-card-identity"]',
-        actions: [{ type: 'goTo', path: '/civic-card' }]
+        target: '[data-tour="sidebar-timeline"], [data-tour="mobile-nav-timeline"]',
+        actions: [{ type: 'goTo', path: '/timeline' }]
       },
       {
         id: 'tour-step-5',
         titleKey: 'demo.tour.step5.title',
         bodyKey: 'demo.tour.step5.body',
-        target: '[data-tour="civic-qr-frame"]',
-        actions: [
-          {
-            type: 'generateVerificationToken',
-            scopes: ['student_discount', 'trp_valid'],
-            expiresInSeconds: 120,
-            status: 'eligible'
-          }
-        ]
+        target: '[data-tour="sidebar-inbox"], [data-tour="mobile-nav-inbox"]',
+        actions: [{ type: 'goTo', path: '/inbox' }]
       },
       {
         id: 'tour-step-6',
         titleKey: 'demo.tour.step6.title',
         bodyKey: 'demo.tour.step6.body',
-        target: '[data-tour="verify-result-card"]',
-        actions: [{ type: 'goTo', path: '/verify?token={token}' }]
+        target: '[data-tour="sidebar-appointments"], [data-tour="mobile-nav-appointments"]',
+        actions: [{ type: 'goTo', path: '/appointments' }]
       },
       {
         id: 'tour-step-7',
         titleKey: 'demo.tour.step7.title',
         bodyKey: 'demo.tour.step7.body',
-        target: '[data-tour="requests-list"]',
-        actions: [
-          {
-            type: 'addAuditEvent',
-            actor: 'Police',
-            result: 'valid',
-            minimalDataKey: 'wallet.checks_data_status_validity'
-          },
-          {
-            type: 'addNotification',
-            notificationType: 'security',
-            titleKey: 'demo.notification.police_verified_title',
-            bodyKey: 'demo.notification.police_verified_body',
-            ctaHref: '/timeline',
-            ctaLabelKey: 'notification.view_timeline'
-          },
-          {
-            type: 'timelineEvent',
-            title: 'Verification event logged',
-            status: 'in_review'
-          },
-          { type: 'goTo', path: '/timeline' }
-        ]
+        target: '[data-tour="sidebar-civic-card"], [data-tour="mobile-nav-civic-card"]',
+        actions: [{ type: 'goTo', path: '/civic-card' }]
       },
       {
         id: 'tour-step-8',
         titleKey: 'demo.tour.step8.title',
-        bodyKey: 'demo.tour.step8.body'
+        bodyKey: 'demo.tour.step8.body',
+        target: '[data-tour="sidebar-menu"], [data-tour="mobile-nav-menu"]',
+        actions: [{ type: 'goTo', path: '/settings' }]
+      },
+      {
+        id: 'tour-step-9',
+        titleKey: 'demo.tour.step9.title',
+        bodyKey: 'demo.tour.step9.body',
+        target: '[data-tour="sidebar-qa"], [data-tour="mobile-nav-qa"]',
+        actions: [{ type: 'goTo', path: '/qa' }]
+      },
+      {
+        id: 'tour-step-10',
+        titleKey: 'demo.tour.step10.title',
+        bodyKey: 'demo.tour.step10.body',
+        actions: [{ type: 'goTo', path: '/' }]
       }
     ]
   },
