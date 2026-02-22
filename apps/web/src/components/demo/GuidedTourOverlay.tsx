@@ -34,6 +34,13 @@ function overlapAmount(startA: number, endA: number, startB: number, endB: numbe
   return Math.max(0, Math.min(endA, endB) - Math.max(startA, startB));
 }
 
+function overlapArea(rectA: RectLike, rectB: RectLike) {
+  return (
+    overlapAmount(rectA.left, rectA.left + rectA.width, rectB.left, rectB.left + rectB.width) *
+    overlapAmount(rectA.top, rectA.top + rectA.height, rectB.top, rectB.top + rectB.height)
+  );
+}
+
 function getViewportMetrics(): ViewportMetrics {
   if (typeof window === 'undefined') {
     return {
@@ -73,18 +80,6 @@ function isRenderableTarget(element: HTMLElement | null): element is HTMLElement
   return rect.width >= 8 && rect.height >= 8;
 }
 
-function resolveDeviceLocale(): LocaleCode | null {
-  if (typeof navigator === 'undefined') return null;
-  const candidates = [...(navigator.languages ?? []), navigator.language].filter(Boolean);
-  for (const candidate of candidates) {
-    const short = candidate.toLowerCase().split('-')[0];
-    if (short === 'en' || short === 'el' || short === 'ru' || short === 'uk' || short === 'hi' || short === 'ar') {
-      return normalizeLocale(short);
-    }
-  }
-  return null;
-}
-
 export function GuidedTourOverlay() {
   const runtime = useDemoRuntimeState();
   const locale = useDemoSelector((state) => state.locale);
@@ -106,10 +101,10 @@ export function GuidedTourOverlay() {
   const steps = scenario?.steps ?? [];
   const stepIndex = clamp(runtime.tour.stepIndex, 0, Math.max(steps.length - 1, 0));
   const step = steps[stepIndex] ?? null;
-  const textLocale = useMemo(() => {
+  const textLocale = useMemo<LocaleCode>(() => {
     if (!runtime.tour.active) return appLocale;
     if (step?.id === 'tour-language') return 'en';
-    return resolveDeviceLocale() ?? appLocale;
+    return normalizeLocale(appLocale);
   }, [appLocale, runtime.tour.active, step?.id]);
   const tt = (key: string) => translate(textLocale, key);
 
@@ -270,16 +265,26 @@ export function GuidedTourOverlay() {
     if (!targetRect) return null;
 
     if (!mobileViewport) {
+      const maxWidth = Math.max(140, Math.round(viewportWidth * 0.9));
+      const maxHeight = Math.max(90, Math.round(viewportHeight * 0.62));
+      const width = Math.min(targetRect.width + 16, maxWidth);
+      const height = Math.min(targetRect.height + 16, maxHeight);
+      const minTop = viewport.offsetTop + 8;
+      const maxTop = viewport.offsetTop + viewportHeight - height - 8;
+      const minLeft = viewport.offsetLeft + 8;
+      const maxLeft = viewport.offsetLeft + viewportWidth - width - 8;
+      const centeredTop = targetRect.top + targetRect.height / 2 - height / 2;
+      const centeredLeft = targetRect.left + targetRect.width / 2 - width / 2;
       return {
-        top: Math.max(viewport.offsetTop + 8, targetRect.top - 8),
-        left: Math.max(viewport.offsetLeft + 8, targetRect.left - 8),
-        width: targetRect.width + 16,
-        height: targetRect.height + 16
+        top: clamp(centeredTop, minTop, Math.max(minTop, maxTop)),
+        left: clamp(centeredLeft, minLeft, Math.max(minLeft, maxLeft)),
+        width,
+        height
       };
     }
 
     const maxWidth = Math.max(84, viewportWidth - 16);
-    const maxHeight = Math.max(56, viewportHeight - 16);
+    const maxHeight = Math.max(72, Math.round(viewportHeight * 0.46));
     const width = clamp(targetRect.width + 18, Math.min(120, maxWidth), maxWidth);
     const height = clamp(targetRect.height + 18, Math.min(58, maxHeight), maxHeight);
     const minTop = viewport.offsetTop + 8;
@@ -297,51 +302,72 @@ export function GuidedTourOverlay() {
   }, [mobileViewport, targetRect, viewport.offsetLeft, viewport.offsetTop, viewportHeight, viewportWidth]);
 
   const resolvedPopoverHeight = Math.max(164, popoverHeight);
-  const popoverTop = (() => {
-    const minTop = viewport.offsetTop + 10;
-    const maxTop = Math.max(minTop, viewport.offsetTop + viewportHeight - resolvedPopoverHeight - (mobileViewport ? viewport.bottomInset + 76 : 16));
+  const popoverWidth = mobileViewport ? Math.min(440, viewportWidth - 20) : Math.min(380, viewportWidth - 24);
+  const popoverPosition = useMemo(() => {
+    const horizontalPadding = mobileViewport ? 10 : 14;
+    const minLeft = viewport.offsetLeft + horizontalPadding;
+    const maxLeft = Math.max(minLeft, viewport.offsetLeft + viewportWidth - popoverWidth - horizontalPadding);
+    const minTop = viewport.offsetTop + (mobileViewport ? 10 : 14);
+    const maxTop = Math.max(
+      minTop,
+      viewport.offsetTop + viewportHeight - resolvedPopoverHeight - (mobileViewport ? viewport.bottomInset + 84 : 14)
+    );
+
+    const evaluate = (rawTop: number, rawLeft: number, bias = 0) => {
+      const top = clamp(rawTop, minTop, maxTop);
+      const left = clamp(rawLeft, minLeft, maxLeft);
+      const cardRect: RectLike = {
+        top,
+        left,
+        width: popoverWidth,
+        height: resolvedPopoverHeight
+      };
+      const overlap = spotlightRect ? overlapArea(cardRect, spotlightRect) : 0;
+      const clampPenalty = Math.abs(rawTop - top) + Math.abs(rawLeft - left);
+      return { top, left, score: overlap * 2 + clampPenalty + bias };
+    };
 
     if (!spotlightRect) {
       return mobileViewport
-        ? maxTop
-        : Math.max(viewport.offsetTop + viewportHeight / 2 - resolvedPopoverHeight / 2, viewport.offsetTop + 20);
+        ? evaluate(maxTop, minLeft)
+        : evaluate(viewport.offsetTop + viewportHeight / 2 - resolvedPopoverHeight / 2, viewport.offsetLeft + viewportWidth / 2 - popoverWidth / 2);
     }
-
-    const targetStart = spotlightRect.top - 10;
-    const targetEnd = spotlightRect.top + spotlightRect.height + 10;
 
     if (mobileViewport) {
-      const topCandidate = minTop;
-      const bottomCandidate = maxTop;
-      const overlapTop = overlapAmount(topCandidate, topCandidate + resolvedPopoverHeight, targetStart, targetEnd);
-      const overlapBottom = overlapAmount(bottomCandidate, bottomCandidate + resolvedPopoverHeight, targetStart, targetEnd);
-      return overlapTop < overlapBottom ? topCandidate : bottomCandidate;
+      const targetMid = spotlightRect.top + spotlightRect.height / 2;
+      const viewportMid = viewport.offsetTop + viewportHeight / 2;
+      const preferBottom = targetMid < viewportMid;
+
+      const topCandidate = evaluate(minTop, minLeft, preferBottom ? 8 : 2);
+      const bottomCandidate = evaluate(maxTop, minLeft, preferBottom ? 2 : 8);
+      const middleCandidate = evaluate(viewport.offsetTop + viewportHeight / 2 - resolvedPopoverHeight / 2, minLeft, 12);
+
+      const bestMobile = [topCandidate, bottomCandidate, middleCandidate].sort((a, b) => a.score - b.score)[0];
+      return { top: bestMobile.top, left: bestMobile.left };
     }
 
-    const belowCandidate = clamp(
-      spotlightRect.top + spotlightRect.height + 14,
-      minTop,
-      Math.max(minTop, viewport.offsetTop + viewportHeight - resolvedPopoverHeight - 16)
-    );
-    const aboveCandidate = clamp(
-      spotlightRect.top - resolvedPopoverHeight - 14,
-      minTop,
-      Math.max(minTop, viewport.offsetTop + viewportHeight - resolvedPopoverHeight - 16)
-    );
-    const overlapBelow = overlapAmount(belowCandidate, belowCandidate + resolvedPopoverHeight, targetStart, targetEnd);
-    const overlapAbove = overlapAmount(aboveCandidate, aboveCandidate + resolvedPopoverHeight, targetStart, targetEnd);
-    return overlapBelow <= overlapAbove ? belowCandidate : aboveCandidate;
-  })();
+    const centerX = spotlightRect.left + spotlightRect.width / 2;
+    const centerY = spotlightRect.top + spotlightRect.height / 2;
+    const gap = 16;
 
-  const popoverLeft = mobileViewport
-    ? viewport.offsetLeft + 10
-    : spotlightRect
-      ? clamp(
-          spotlightRect.left,
-          viewport.offsetLeft + 14,
-          Math.max(viewport.offsetLeft + viewportWidth - 420, viewport.offsetLeft + 14)
-        )
-      : Math.max(viewport.offsetLeft + viewportWidth / 2 - 200, viewport.offsetLeft + 12);
+    const rightCandidate = evaluate(centerY - resolvedPopoverHeight / 2, spotlightRect.left + spotlightRect.width + gap);
+    const leftCandidate = evaluate(centerY - resolvedPopoverHeight / 2, spotlightRect.left - popoverWidth - gap);
+    const belowCandidate = evaluate(spotlightRect.top + spotlightRect.height + gap, centerX - popoverWidth / 2);
+    const aboveCandidate = evaluate(spotlightRect.top - resolvedPopoverHeight - gap, centerX - popoverWidth / 2);
+
+    const bestDesktop = [rightCandidate, leftCandidate, belowCandidate, aboveCandidate].sort((a, b) => a.score - b.score)[0];
+    return { top: bestDesktop.top, left: bestDesktop.left };
+  }, [
+    mobileViewport,
+    popoverWidth,
+    resolvedPopoverHeight,
+    spotlightRect,
+    viewport.bottomInset,
+    viewport.offsetLeft,
+    viewport.offsetTop,
+    viewportHeight,
+    viewportWidth
+  ]);
 
   if (!runtime.tour.active || !scenario || !step) return null;
 
@@ -375,7 +401,7 @@ export function GuidedTourOverlay() {
         <div className="demo-tour-mask" aria-hidden />
       )}
 
-      <div className="demo-tour-popover" style={{ top: popoverTop, left: popoverLeft }} ref={popoverRef}>
+      <div className="demo-tour-popover" style={{ top: popoverPosition.top, left: popoverPosition.left, width: popoverWidth }} ref={popoverRef}>
         <div className="demo-tour-head">
           <p className="mono">{progressLabel}</p>
           <button type="button" className="wallet-action wallet-action-soft demo-tour-btn-skip" onClick={() => stopGuidedTour()}>

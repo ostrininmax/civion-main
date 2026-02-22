@@ -113,7 +113,7 @@ export function Topbar() {
       <div className="topbar-right">
         <LanguageSwitcher compact />
 
-        <div style={{ textAlign: 'right' }}>
+        <div className="topbar-meta">
           <div className="mono" suppressHydrationWarning>
             {todayLabel || '\u00A0'}
           </div>

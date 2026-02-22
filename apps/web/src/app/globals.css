@@ -1322,6 +1322,12 @@ a,
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-wrap: nowrap;
+}
+
+.topbar-meta {
+  min-width: 176px;
+  text-align: right;
 }
 
 .topbar-notifications {
@@ -1935,11 +1941,18 @@ a,
 
 .language-switcher-compact {
   display: inline-flex;
+  flex: 0 0 184px;
 }
 
 .language-select {
   min-height: 40px;
   min-width: 130px;
+  white-space: nowrap;
+}
+
+.language-switcher-compact .language-select {
+  width: 184px;
+  min-width: 184px;
 }
 
 .topbar-notifications-footer {
@@ -3682,6 +3695,20 @@ a,
 
   .topbar-right {
     align-items: flex-start;
+  }
+
+  .topbar-meta {
+    min-width: 0;
+    text-align: left;
+  }
+
+  .language-switcher-compact {
+    flex: 0 0 168px;
+  }
+
+  .language-switcher-compact .language-select {
+    width: 168px;
+    min-width: 168px;
   }
 
   .topbar-notifications-menu {
