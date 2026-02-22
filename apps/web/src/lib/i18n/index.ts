@@ -1279,6 +1279,8 @@ const extraEn: Dictionary = {
 
   'demo.tour.title': 'Guided Tour',
   'demo.tour.description': 'Quick walkthrough of the core citizen verification flow.',
+  'demo.tour.language.title': 'Choose your language',
+  'demo.tour.language.body': 'Choose any language you are comfortable with. The tour continues in your selected language.',
   'demo.tour.step1.title': 'Government registry sync',
   'demo.tour.step1.body': 'Documents come from connected registries in read-only mode.',
   'demo.tour.step2.title': 'Expiring Residence Permit',

@@ -106,7 +106,11 @@ export function GuidedTourOverlay() {
   const steps = scenario?.steps ?? [];
   const stepIndex = clamp(runtime.tour.stepIndex, 0, Math.max(steps.length - 1, 0));
   const step = steps[stepIndex] ?? null;
-  const textLocale = useMemo(() => (runtime.tour.active ? resolveDeviceLocale() ?? appLocale : appLocale), [appLocale, runtime.tour.active]);
+  const textLocale = useMemo(() => {
+    if (!runtime.tour.active) return appLocale;
+    if (step?.id === 'tour-language') return 'en';
+    return resolveDeviceLocale() ?? appLocale;
+  }, [appLocale, runtime.tour.active, step?.id]);
   const tt = (key: string) => translate(textLocale, key);
 
   useEffect(() => {

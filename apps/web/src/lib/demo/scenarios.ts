@@ -65,6 +65,13 @@ export const DEMO_SCENARIOS: Record<string, DemoScenario> = {
     descriptionKey: 'demo.tour.description',
     steps: [
       {
+        id: 'tour-language',
+        titleKey: 'demo.tour.language.title',
+        bodyKey: 'demo.tour.language.body',
+        target: '[data-tour="language-switcher"]',
+        actions: [{ type: 'goTo', path: '/' }]
+      },
+      {
         id: 'tour-step-1',
         titleKey: 'demo.tour.step1.title',
         bodyKey: 'demo.tour.step1.body',
