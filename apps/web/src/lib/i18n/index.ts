@@ -241,6 +241,7 @@ const baseEn: Dictionary = {
   'status.completed': 'Completed',
   'status.valid': 'Valid',
   'status.invalid': 'Invalid',
+  'status.blocked': 'Blocked',
 
   'type.document': 'Document',
   'type.service': 'Service',
@@ -1535,6 +1536,153 @@ const extraEn: Dictionary = {
   'security.report_sent': 'Security report sent. Our team will review it.',
   'security.report_notification_title': 'Security report received',
   'security.report_notification_body': 'Your suspicious activity report is now under review.',
+  'security.center_title': 'Security Center',
+  'security.center_action': 'Protection status',
+  'security.score_label': 'Security score: {score}/100',
+  'security.why_score': 'Why this score?',
+  'security.status_protected': 'Protected',
+  'security.status_attention': 'Attention needed',
+  'security.status_risk': 'Risk detected',
+  'security.status_locked': 'Locked',
+  'security.summary_protected': 'Your account is protected. No suspicious activity detected.',
+  'security.summary_attention': 'Attention needed. Review active sessions and share links.',
+  'security.summary_attention_suspicious': 'Risk detected: untrusted sign-in activity requires review.',
+  'security.summary_risk': 'Risk detected. Review suspicious sessions and revoke exposed links now.',
+  'security.summary_locked': 'Verification is blocked while Emergency Lock is active.',
+  'security.quick_lock': 'Emergency Lock',
+  'security.quick_review_links': 'Review active share links',
+  'security.quick_manage_devices': 'Manage trusted devices',
+  'security.recommendations_title': 'Security recommendations',
+  'security.recommendations_good_title': 'Security baseline looks strong',
+  'security.recommendations_good_body': 'No urgent actions required right now.',
+  'security.reco_suspicious_title': 'Suspicious sign-in detected',
+  'security.reco_suspicious_body': 'An untrusted device appeared recently. Review sessions and sign out unknown devices.',
+  'security.reco_links_title': 'Review active share links',
+  'security.reco_links_body': 'You have active links that may expose proof longer than needed.',
+  'security.reco_pin_title': 'Configure PIN recovery',
+  'security.reco_pin_body': 'Emergency Lock recovery should be protected with a PIN.',
+  'security.reco_blocked_title': 'Blocked verification activity detected',
+  'security.reco_blocked_body': 'Review blocked attempts to confirm no unauthorized checks happened.',
+  'security.reco_lock_title': 'Prepare emergency response',
+  'security.reco_lock_body': 'Emergency Lock can instantly freeze verification if a device is lost.',
+  'security.reco_manage_devices': 'Manage devices',
+  'security.reco_review_links': 'Review links',
+  'security.reco_configure_pin': 'Open lock settings',
+  'security.reco_open_verifications': 'Open verifications',
+  'security.reco_activate_lock': 'Open Emergency Lock',
+  'security.session_current': 'Current',
+  'security.session_trusted': 'Trusted',
+  'security.session_new': 'New',
+  'security.session_suspicious': 'Suspicious',
+  'security.device_phone': 'Phone',
+  'security.device_laptop': 'Laptop',
+  'security.device_tablet': 'Tablet',
+  'security.mark_trusted': 'Mark as trusted',
+  'security.remove_trust': 'Remove trust',
+  'security.sign_out_device': 'Sign out device',
+  'security.view_details': 'View details',
+  'security.device_details_title': 'Device session details',
+  'security.rename_device': 'Rename device',
+  'security.rename_placeholder': 'Enter a clear device name',
+  'security.device_added': 'Added',
+  'security.ip_masked': 'IP (masked)',
+  'security.verifications_title': 'Recent verifications',
+  'security.verification_details_title': 'Verification details',
+  'security.token_status': 'Token status',
+  'security.lock_state': 'Lock state',
+  'security.initiated_by': 'Initiated by',
+  'security.min_data_desc': 'Verifier sees only minimal required fields for this check.',
+  'security.active_links_title': 'Active share links',
+  'security.active_links_count': '{count} active links',
+  'security.share_created': 'Created',
+  'security.share_expires': 'Expires',
+  'security.share_scope': 'Scope',
+  'security.share_status_active': 'Active',
+  'security.share_status_revoked': 'Revoked',
+  'security.share_status_expired': 'Expired',
+  'security.copy_link': 'Copy link',
+  'security.extend_link': 'Extend 1 hour',
+  'security.revoke_link': 'Revoke',
+  'security.revoke_all_links': 'Revoke all active links',
+  'security.no_links_title': 'No share links',
+  'security.no_links_desc': 'Generate proof links from documents or Civic Card to see them here.',
+  'security.link_unknown_target': 'Unknown proof target',
+  'security.lock_section_action': 'Digital freeze controls',
+  'security.no_lock_history': 'No lock events yet.',
+  'security.event_lock_label': 'Emergency lock activated',
+  'security.trusted_devices_title': 'Trusted devices',
+  'security.no_trusted_title': 'No trusted devices yet',
+  'security.no_trusted_desc': 'Trust your current device to improve account security.',
+  'security.no_failed_desc': 'No failed verification attempts recorded.',
+  'security.demo_controls_title': 'Demo controls',
+  'security.demo_controls_action': 'Simulate security incidents',
+  'security.demo_suspicious_login': 'Simulate suspicious login',
+  'security.demo_unauthorized_verification': 'Simulate unauthorized verification attempt',
+  'security.demo_share_leak': 'Simulate share link leak',
+  'security.demo_reset_security': 'Reset security events',
+  'security.score_rule_locked_suspicious': 'Account locked due to suspicious activity',
+  'security.score_rule_suspicious_login': 'Suspicious sign-in in last 7 days',
+  'security.score_rule_stale_links': 'Active share links older than 24 hours',
+  'security.score_rule_no_trusted_devices': 'No trusted devices configured',
+  'security.score_rule_no_pin': 'Emergency lock recovery PIN not configured',
+  'security.score_rule_blocked_attempt': 'Blocked verification attempt detected',
+  'security.score_rule_many_links': 'More than 3 active share links',
+  'security.score_rule_pin_configured': 'PIN recovery configured',
+  'security.score_rule_current_device_trusted': 'Current device trusted',
+  'security.score_rule_no_suspicious_events': 'No suspicious events in last 7 days',
+  'security.toast_review_links': 'Opening active share links.',
+  'security.toast_review_devices': 'Opening device sessions.',
+  'security.toast_open_lock_settings': 'Opening emergency lock settings.',
+  'security.toast_open_verifications': 'Opening verification log.',
+  'security.toast_activate_lock': 'Open Emergency Lock to freeze account instantly.',
+  'security.toast_link_copied': 'Share link copied.',
+  'security.toast_link_copy_failed': 'Could not copy link.',
+  'security.toast_link_extended': 'Share link extended by 1 hour.',
+  'security.toast_link_extend_failed': 'Link extension failed.',
+  'security.toast_link_revoked': 'Share link revoked.',
+  'security.toast_link_revoke_failed': 'Could not revoke link.',
+  'security.toast_no_active_links': 'No active links to revoke.',
+  'security.toast_all_links_revoked': '{count} active links revoked.',
+  'security.toast_device_trusted': 'Device marked as trusted.',
+  'security.toast_device_untrusted': 'Device trust removed.',
+  'security.toast_device_renamed': 'Device renamed.',
+  'security.toast_device_rename_failed': 'Device rename failed.',
+  'security.toast_session_signed_out': 'Device signed out.',
+  'security.toast_session_signout_unavailable': 'Current device cannot be signed out here.',
+  'security.toast_simulated_login': 'Suspicious login simulated.',
+  'security.toast_simulated_verification': 'Unauthorized verification attempt simulated.',
+  'security.toast_simulated_link_leak': 'Share link leak simulated.',
+  'security.toast_security_reset': 'Security events reset to baseline.',
+  'security.notification_share_revoked_title': 'Share link revoked',
+  'security.notification_share_revoked_body': 'Selected proof link was revoked successfully.',
+  'security.notification_share_created_title': 'Share link created',
+  'security.notification_share_created_body': '{target} can now be verified until {time}.',
+  'security.notification_all_links_revoked_title': 'All active links revoked',
+  'security.notification_all_links_revoked_body': '{count} proof links were revoked.',
+  'security.notification_session_signed_out_title': 'Session signed out',
+  'security.notification_session_signed_out_body': '{device} was signed out.',
+  'security.notification_suspicious_signin_title': 'Suspicious sign-in detected',
+  'security.notification_suspicious_signin_body': 'New login from Cairo, Egypt needs review.',
+  'security.notification_unauthorized_blocked_title': 'Unauthorized verification blocked',
+  'security.notification_unauthorized_blocked_body': 'Verification request was blocked automatically.',
+  'security.audit_share_created_for': 'Share link created for {target}',
+  'security.audit_share_revoked_for': 'Share link revoked for {target}',
+  'security.audit_revoked_count': 'Revoked {count} active share links',
+  'security.audit_share_created_type': 'Share link created ({type})',
+  'security.audit_share_revoked_type': 'Share link revoked ({type})',
+  'security.audit_share_extended_type': 'Share link extended ({type})',
+  'security.audit_device_trusted': 'Device trusted: {device}',
+  'security.audit_device_untrusted': 'Device trust removed: {device}',
+  'security.audit_session_signed_out': 'Session signed out: {device}',
+  'security.audit_untrusted_login_detected': 'Untrusted login detected',
+  'security.token_status_valid': 'Valid',
+  'security.token_status_invalid': 'Invalid',
+  'security.token_status_expired': 'Expired',
+  'security.token_status_blocked': 'Blocked',
+  'security.lock_state_locked': 'Locked',
+  'security.lock_state_unlocked': 'Unlocked',
+  'security.initiated_user': 'User',
+  'security.initiated_system': 'System',
 
   'processes.title': 'Digital Services',
   'processes.action': '{count} available',
@@ -2233,6 +2381,12 @@ export function localizeRequestTimelineEvent(locale: LocaleCode, title: string) 
   if (title === 'Emergency hard lock activated') return ti(locale, 'security.event_lock', { type: t(locale, 'security.lock_type_hard') });
   if (title === 'Account unlocked by owner') return t(locale, 'security.event_unlock');
   if (title === 'Emergency lock expired automatically') return t(locale, 'security.event_auto_unlock');
+  if (title === 'Share link revoked') return t(locale, 'security.notification_share_revoked_title');
+  if (title === 'Session signed out') return t(locale, 'security.notification_session_signed_out_title');
+  if (title === 'Unauthorized verification blocked') return t(locale, 'security.notification_unauthorized_blocked_title');
+  if (title === 'All active proof links revoked') return t(locale, 'security.notification_all_links_revoked_title');
+  if (title === 'Suspicious sign-in detected') return t(locale, 'security.notification_suspicious_signin_title');
+  if (title === 'Security signals reset') return t(locale, 'security.demo_reset_security');
 
   const referenceMatch = title.match(/^Request ([A-Z0-9-]+) submitted$/);
   if (referenceMatch) {
@@ -2274,6 +2428,12 @@ export function localizeNotificationTitle(locale: LocaleCode, title: string) {
   if (title === 'Account temporarily locked') return t(locale, 'security.notification_locked_title');
   if (title === 'Account successfully unlocked') return t(locale, 'security.notification_unlocked_title');
   if (title === 'Account auto-unlocked') return t(locale, 'security.notification_auto_unlocked_title');
+  if (title === 'Share link revoked') return t(locale, 'security.notification_share_revoked_title');
+  if (title === 'Share link created') return t(locale, 'security.notification_share_created_title');
+  if (title === 'All active links revoked') return t(locale, 'security.notification_all_links_revoked_title');
+  if (title === 'Session signed out') return t(locale, 'security.notification_session_signed_out_title');
+  if (title === 'Suspicious sign-in detected') return t(locale, 'security.notification_suspicious_signin_title');
+  if (title === 'Unauthorized verification blocked') return t(locale, 'security.notification_unauthorized_blocked_title');
 
   const reviewMatch = title.match(/^Request ([A-Z0-9-]+) moved to review$/);
   if (reviewMatch) return ti(locale, 'notification.request_review_title', { reference: reviewMatch[1] });
@@ -2307,9 +2467,30 @@ export function localizeNotificationBody(locale: LocaleCode, body: string) {
   if (body === 'Hard lock active. Documents marked as compromised.') return t(locale, 'security.notification_locked_body_hard');
   if (body === 'Verification and sharing are available again.') return t(locale, 'security.notification_unlocked_body');
   if (body === 'Timed lock expired and access was restored.') return t(locale, 'security.notification_auto_unlocked_body');
+  if (body === 'Selected proof link was revoked successfully.') return t(locale, 'security.notification_share_revoked_body');
+  if (body === 'New login from Cairo, Egypt needs review.') return t(locale, 'security.notification_suspicious_signin_body');
+  if (body === 'Verification request was blocked automatically.') return t(locale, 'security.notification_unauthorized_blocked_body');
 
   const inProcessingMatch = body.match(/^(.+) is now in processing\.$/);
   if (inProcessingMatch) return ti(locale, 'notification.request_processing_body', { service: inProcessingMatch[1] });
+
+  const shareCreatedMatch = body.match(/^(.+) can now be verified until (.+)\.$/);
+  if (shareCreatedMatch) {
+    return ti(locale, 'security.notification_share_created_body', {
+      target: shareCreatedMatch[1],
+      time: shareCreatedMatch[2]
+    });
+  }
+
+  const allRevokedMatch = body.match(/^(\d+) proof links were revoked\.$/);
+  if (allRevokedMatch) {
+    return ti(locale, 'security.notification_all_links_revoked_body', { count: allRevokedMatch[1] });
+  }
+
+  const sessionSignedOutMatch = body.match(/^(.+) was signed out\.$/);
+  if (sessionSignedOutMatch) {
+    return ti(locale, 'security.notification_session_signed_out_body', { device: sessionSignedOutMatch[1] });
+  }
 
   const reviewMatch = body.match(/^(.+) started processing your case\.$/);
   if (reviewMatch) return ti(locale, 'notification.request_review_body', { authority: localizeAuthority(locale, reviewMatch[1]) });

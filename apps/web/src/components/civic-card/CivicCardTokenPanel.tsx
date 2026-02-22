@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import QRCode from 'qrcode';
 import type { CivicCardScope, CivicCardTokenResponse } from '../../lib/client-api';
 import { appendRecentCheck } from '../../lib/recent-checks';
-import { addFailedVerificationAttempt, addVerificationEvent } from '../../lib/storage/demo-store';
+import { addFailedVerificationAttempt, addVerificationEvent, createSecurityShareLink } from '../../lib/storage/demo-store';
 import { createBenefitPassToken } from '../../lib/verification-token';
 import { t } from '../../lib/i18n';
 import { useTranslation } from '../../lib/i18n/context';
@@ -279,8 +279,23 @@ export function CivicCardTokenPanel({
                 return;
               }
               const shareUrl = `${window.location.origin}/verify?token=${encodeURIComponent(tokenData.token)}`;
+              const shareRecord = createSecurityShareLink({
+                targetType: 'civic_card',
+                targetId: 'benefitpass-card',
+                targetTitle: t('en', 'civic.benefitpass', 'BenefitPass'),
+                duration: '10m',
+                scope:
+                  privacyMode === 'minimal'
+                    ? ['status', 'validity']
+                    : ['status', 'validity', 'issuer', 'document_type'],
+                link: shareUrl
+              });
+              if (!shareRecord) {
+                setError(tt('authority.invalid_locked'));
+                return;
+              }
               try {
-                await navigator.clipboard.writeText(shareUrl);
+                await navigator.clipboard.writeText(shareRecord.link);
                 setCopyLabel(tt('civic.share_copied'));
                 window.setTimeout(() => setCopyLabel(tt('civic.share_proof')), 1500);
                 appendRecentCheck({

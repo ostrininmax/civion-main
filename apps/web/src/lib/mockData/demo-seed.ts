@@ -3,6 +3,7 @@ import type {
   AppNotification,
   ConsentRecord,
   DemoState,
+  DocumentShareRecord,
   DocumentMetaState,
   MessageThread,
   RequestTimelineItem,
@@ -187,33 +188,82 @@ const baseAccountSecurity: AccountSecurityState = {
   lockedAt: null,
   lockDuration: undefined,
   lockedUntil: undefined,
+  lockReason: undefined,
+  pinConfigured: true,
   compromisedDocuments: [],
   lockHistory: [],
   failedVerificationAttempts: [],
   deviceSessions: [
     {
       id: 'sess_web_primary',
-      channel: 'web',
+      deviceName: 'MacBook Pro (Chrome)',
+      deviceType: 'laptop',
       location: 'Nicosia, Cyprus',
-      device: 'Chrome on macOS',
+      ipMasked: '85.129.*.*',
       lastSeenAt: offset(-1),
-      active: true
+      addedAt: offset(-420),
+      isCurrent: true,
+      isTrusted: true,
+      status: 'current'
     },
     {
       id: 'sess_mobile',
-      channel: 'mobile',
+      deviceName: 'iPhone 15 Pro (Safari)',
+      deviceType: 'phone',
       location: 'Larnaca, Cyprus',
-      device: 'Safari on iOS',
+      ipMasked: '92.63.*.*',
       lastSeenAt: offset(-8),
-      active: true
+      addedAt: offset(-360),
+      isCurrent: false,
+      isTrusted: true,
+      status: 'trusted'
     },
     {
-      id: 'sess_tablet',
-      channel: 'tablet',
-      location: 'Limassol, Cyprus',
-      device: 'iPadOS',
-      lastSeenAt: offset(-72),
-      active: false
+      id: 'sess_suspicious_old',
+      deviceName: 'Unknown Android Device',
+      deviceType: 'phone',
+      location: 'Cairo, Egypt',
+      ipMasked: '41.33.*.*',
+      lastSeenAt: offset(-240),
+      addedAt: offset(-240),
+      isCurrent: false,
+      isTrusted: false,
+      status: 'suspicious'
+    }
+  ],
+  shareLinks: [
+    {
+      id: 'share_residence_live',
+      targetType: 'document',
+      targetId: 'doc-residence',
+      targetTitle: 'Residence Permit',
+      createdAt: offset(-2),
+      expiresAt: offset(4),
+      scope: ['status', 'validity'],
+      status: 'active',
+      link: 'https://demo.civic.local/proof/share_residence_live'
+    },
+    {
+      id: 'share_passport_old',
+      targetType: 'document',
+      targetId: 'doc-passport',
+      targetTitle: 'Passport',
+      createdAt: offset(-30),
+      expiresAt: offset(18),
+      scope: ['status', 'validity', 'issuer'],
+      status: 'active',
+      link: 'https://demo.civic.local/proof/share_passport_old'
+    },
+    {
+      id: 'share_civic_recent',
+      targetType: 'civic_card',
+      targetId: 'benefitpass-card',
+      targetTitle: 'Civic Card',
+      createdAt: offset(-1),
+      expiresAt: offset(1),
+      scope: ['status', 'validity'],
+      status: 'active',
+      link: 'https://demo.civic.local/verify?token=seeded'
     }
   ],
   unlockPin: '2580',
@@ -248,6 +298,31 @@ const baseDocumentMeta: Record<string, DocumentMetaState> = Object.fromEntries(
   MOCK_DOCUMENTS.map((document, index) => {
     const createdAt = offset(-300 - index * 5);
     const verifiedAt = offset(-20 - index * 2);
+    const shares: DocumentShareRecord[] = [];
+
+    if (document.id === 'doc-residence') {
+      shares.push({
+        id: 'share_residence_live',
+        documentId: document.id,
+        link: 'https://demo.civic.local/proof/share_residence_live',
+        createdAt: offset(-2),
+        expiresAt: offset(4),
+        revoked: false,
+        fields: ['status', 'validity']
+      });
+    }
+
+    if (document.id === 'doc-passport') {
+      shares.push({
+        id: 'share_passport_old',
+        documentId: document.id,
+        link: 'https://demo.civic.local/proof/share_passport_old',
+        createdAt: offset(-30),
+        expiresAt: offset(18),
+        revoked: false,
+        fields: ['status', 'validity', 'issuer']
+      });
+    }
 
     const meta: DocumentMetaState = {
       documentId: document.id,
@@ -255,7 +330,7 @@ const baseDocumentMeta: Record<string, DocumentMetaState> = Object.fromEntries(
       lastUpdated: document.lastUpdated,
       verifiedByRegistrySync: true,
       sharingPermissions: document.id === 'doc-residence' ? '10m' : '1h',
-      shares: [],
+      shares,
       history: [
         {
           id: `dh_${document.id}_created`,
@@ -270,7 +345,14 @@ const baseDocumentMeta: Record<string, DocumentMetaState> = Object.fromEntries(
           type: 'verified',
           at: verifiedAt,
           meta: 'Registry sync check'
-        }
+        },
+        ...shares.map((share, shareIndex) => ({
+          id: `dh_${document.id}_shared_${shareIndex}`,
+          documentId: document.id,
+          type: 'shared' as const,
+          at: share.createdAt,
+          meta: `Fields: ${share.fields.join(', ')}`
+        }))
       ]
     };
 
@@ -312,7 +394,8 @@ export function createInitialDemoState(): DemoState {
       compromisedDocuments: [...(baseAccountSecurity.compromisedDocuments ?? [])],
       lockHistory: [...baseAccountSecurity.lockHistory],
       failedVerificationAttempts: [...baseAccountSecurity.failedVerificationAttempts],
-      deviceSessions: baseAccountSecurity.deviceSessions.map((session) => ({ ...session }))
+      deviceSessions: baseAccountSecurity.deviceSessions.map((session) => ({ ...session })),
+      shareLinks: baseAccountSecurity.shareLinks.map((link) => ({ ...link }))
     },
     profile: {
       fullName: 'Roman Kochetov',

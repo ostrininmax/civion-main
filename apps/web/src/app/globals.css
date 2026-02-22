@@ -2562,6 +2562,299 @@ a,
   gap: 8px;
 }
 
+.security-status-card {
+  border-radius: 16px;
+  border: 1px solid rgba(32, 41, 59, 0.12);
+  background: #fff;
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.security-status-main {
+  display: grid;
+  gap: 8px;
+}
+
+.security-status-main h3 {
+  font-size: 24px;
+  line-height: 1.1;
+}
+
+.security-status-main p {
+  color: var(--ink-700);
+}
+
+.badge.security-status-protected {
+  background: #1e8f5d;
+  color: #fff;
+}
+
+.badge.security-status-attention {
+  background: #b57a07;
+  color: #fff;
+}
+
+.badge.security-status-risk {
+  background: #b23a4c;
+  color: #fff;
+}
+
+.security-status-card.security-status-risk {
+  border-color: rgba(178, 58, 76, 0.34);
+  background: linear-gradient(180deg, #fff4f6 0%, #ffffff 100%);
+}
+
+.security-status-card.security-status-attention {
+  border-color: rgba(181, 122, 7, 0.32);
+  background: linear-gradient(180deg, #fff9ee 0%, #ffffff 100%);
+}
+
+.security-status-card.security-status-protected {
+  border-color: rgba(30, 143, 93, 0.26);
+  background: linear-gradient(180deg, #f2fff9 0%, #ffffff 100%);
+}
+
+.security-score-link {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  justify-self: start;
+}
+
+.security-score-ring {
+  width: 108px;
+  height: 108px;
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.security-score-ring svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.security-score-track {
+  fill: transparent;
+  stroke: rgba(32, 41, 59, 0.14);
+  stroke-width: 10;
+}
+
+.security-score-progress {
+  fill: transparent;
+  stroke: #2f63ea;
+  stroke-width: 10;
+  stroke-linecap: round;
+  stroke-dasharray: 301.59px;
+  transition: stroke-dashoffset 0.25s ease;
+}
+
+.security-score-ring strong {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.security-quick-actions {
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.security-recommendations-list {
+  display: grid;
+  gap: 10px;
+}
+
+.security-recommendation-card {
+  border-radius: 14px;
+  border: 1px solid rgba(32, 41, 59, 0.1);
+  background: #fff;
+  padding: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+}
+
+.security-recommendation-card h3 {
+  font-size: 17px;
+}
+
+.security-recommendation-card p {
+  margin-top: 4px;
+  color: var(--ink-700);
+}
+
+.security-session-list,
+.security-trusted-list,
+.security-share-links {
+  display: grid;
+  gap: 10px;
+}
+
+.security-session-card,
+.security-trusted-card,
+.security-share-card {
+  border-radius: 14px;
+  border: 1px solid rgba(32, 41, 59, 0.1);
+  background: #fff;
+  padding: 12px;
+  display: grid;
+  gap: 8px;
+}
+
+.security-session-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.security-session-title,
+.security-share-title {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.security-session-meta,
+.security-share-meta {
+  color: var(--ink-700);
+  font-size: 13px;
+}
+
+.security-session-actions,
+.security-share-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.badge.security-session-status-current {
+  background: #2f63ea;
+  color: #fff;
+}
+
+.badge.security-session-status-trusted {
+  background: #1e8f5d;
+  color: #fff;
+}
+
+.badge.security-session-status-new {
+  background: #64708a;
+  color: #fff;
+}
+
+.badge.security-session-status-suspicious {
+  background: #a52e50;
+  color: #fff;
+  animation: securityWarningPulse 1.6s ease-in-out infinite;
+}
+
+.security-result-pill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.security-result-valid {
+  color: #0f7a48;
+  background: #dbf7e8;
+}
+
+.security-result-invalid {
+  color: #9f2441;
+  background: #fde8ef;
+}
+
+.security-result-blocked {
+  color: #8f5c00;
+  background: #fff0cc;
+}
+
+.security-share-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.badge.security-share-status-active {
+  background: #1e8f5d;
+  color: #fff;
+  width: fit-content;
+}
+
+.badge.security-share-status-revoked {
+  background: #a52e50;
+  color: #fff;
+  width: fit-content;
+}
+
+.badge.security-share-status-expired {
+  background: #7e5b00;
+  color: #fff;
+  width: fit-content;
+}
+
+.security-lock-section {
+  display: grid;
+  gap: 12px;
+}
+
+.security-demo-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.security-score-modal,
+.security-event-modal,
+.security-device-modal {
+  width: min(640px, calc(100vw - 28px));
+}
+
+.security-score-breakdown {
+  display: grid;
+  gap: 8px;
+}
+
+.security-score-breakdown p {
+  border-radius: 10px;
+  border: 1px solid rgba(32, 41, 59, 0.12);
+  padding: 8px 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.security-breakdown-on {
+  background: #f8fbff;
+}
+
+.security-breakdown-off {
+  opacity: 0.7;
+}
+
+@keyframes securityWarningPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(165, 46, 80, 0.08);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(165, 46, 80, 0);
+  }
+}
+
 .wallet-share-item small,
 .wallet-history-item small {
   color: var(--ink-500);
@@ -3402,6 +3695,35 @@ a,
 
   .wallet-document-number {
     font-size: 32px;
+  }
+
+  .security-status-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .security-score-ring {
+    width: 92px;
+    height: 92px;
+  }
+
+  .security-recommendation-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .security-session-actions,
+  .security-share-card-actions,
+  .security-demo-controls,
+  .security-quick-actions {
+    width: 100%;
+  }
+
+  .security-session-actions .wallet-action,
+  .security-share-card-actions .wallet-action,
+  .security-demo-controls .wallet-action {
+    width: 100%;
+    justify-content: center;
   }
 
   .wallet-log-item {

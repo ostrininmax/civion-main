@@ -22,7 +22,7 @@ export type ShareDuration = '10m' | '1h' | '24h';
 
 export type ShareFieldKey = 'status' | 'validity' | 'issuer' | 'document_type';
 
-export type VerificationResult = 'valid' | 'invalid';
+export type VerificationResult = 'valid' | 'invalid' | 'blocked';
 
 export type CitizenDocument = {
   id: string;
@@ -129,9 +129,13 @@ export type VerificationEvent = {
   result: VerificationResult;
   dataShown: string;
   at: string;
+  tokenStatus?: 'valid' | 'invalid' | 'expired' | 'blocked';
+  lockState?: 'locked' | 'unlocked';
+  initiatedBy?: 'user' | 'system';
 };
 
 export type SecurityLockType = 'soft' | 'hard';
+export type SecurityStatus = 'protected' | 'attention' | 'risk' | 'locked';
 
 export type SecurityLockHistoryEvent = {
   id: string;
@@ -150,11 +154,40 @@ export type FailedVerificationAttempt = {
 
 export type DeviceSession = {
   id: string;
-  channel: 'web' | 'mobile' | 'tablet';
+  deviceName: string;
+  deviceType: 'phone' | 'laptop' | 'tablet';
   location: string;
-  device: string;
+  ipMasked?: string;
   lastSeenAt: string;
-  active: boolean;
+  addedAt?: string;
+  isCurrent: boolean;
+  isTrusted: boolean;
+  status: 'current' | 'trusted' | 'new' | 'suspicious';
+};
+
+export type ShareLink = {
+  id: string;
+  targetType: 'document' | 'civic_card' | 'proof';
+  targetId: string;
+  targetTitle?: string;
+  createdAt: string;
+  expiresAt: string;
+  scope: string[];
+  status: 'active' | 'revoked' | 'expired';
+  link: string;
+};
+
+export type SecurityState = {
+  score: number;
+  status: SecurityStatus;
+  emergencyLock: {
+    isLocked: boolean;
+    lockType?: SecurityLockType;
+    lockedAt?: string;
+    expiresAt?: string | null;
+    reason?: string;
+    pinConfigured?: boolean;
+  };
 };
 
 export type AccountSecurityState = {
@@ -163,10 +196,13 @@ export type AccountSecurityState = {
   lockedAt: string | null;
   lockDuration?: number;
   lockedUntil?: string;
+  lockReason?: string;
+  pinConfigured: boolean;
   compromisedDocuments?: string[];
   lockHistory: SecurityLockHistoryEvent[];
   failedVerificationAttempts: FailedVerificationAttempt[];
   deviceSessions: DeviceSession[];
+  shareLinks: ShareLink[];
   unlockPin: string;
   lastLockAnimationAt?: string;
 };

@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { Section } from '../Section';
 import { StatusPill } from '../StatusPill';
 import { VerifyExpiryTimer } from './VerifyExpiryTimer';
@@ -9,7 +9,7 @@ import type { CivicCardVerificationResponse } from '../../lib/api';
 import { useTranslation } from '../../lib/i18n/context';
 import { t } from '../../lib/i18n';
 import { useDemoSelector } from '../../lib/storage/use-demo-state';
-import { addFailedVerificationAttempt } from '../../lib/storage/demo-store';
+import { addFailedVerificationAttempt, addVerificationEvent } from '../../lib/storage/demo-store';
 
 const scopeLabelKey = {
   student_discount: 'right.student_discount',
@@ -27,7 +27,18 @@ export function VerifyPageClient({
   const { locale, t: tt, formatDateTime } = useTranslation();
   const accountSecurity = useDemoSelector((state) => state.accountSecurity);
   const hasLoggedBlockedAttemptRef = useRef(false);
+  const hasLoggedVerificationRef = useRef(false);
   const isBlockedByLock = Boolean(token && accountSecurity.isLocked && accountSecurity.lockedAt);
+  const effectiveVerification = useMemo<CivicCardVerificationResponse | null>(
+    () =>
+      isBlockedByLock
+        ? {
+            valid: false,
+            reason: 'account_locked'
+          }
+        : verification,
+    [isBlockedByLock, verification]
+  );
 
   useEffect(() => {
     if (!isBlockedByLock || hasLoggedBlockedAttemptRef.current) return;
@@ -38,12 +49,25 @@ export function VerifyPageClient({
     });
   }, [isBlockedByLock]);
 
-  const effectiveVerification: CivicCardVerificationResponse | null = isBlockedByLock
-    ? {
-        valid: false,
-        reason: 'account_locked'
-      }
-    : verification;
+  useEffect(() => {
+    if (!token || !effectiveVerification || hasLoggedVerificationRef.current) return;
+    hasLoggedVerificationRef.current = true;
+
+    addVerificationEvent({
+      verifier: 'Cyprus Services Portal',
+      result: effectiveVerification.valid ? 'valid' : effectiveVerification.reason === 'account_locked' ? 'blocked' : 'invalid',
+      dataShown: effectiveVerification.valid ? 'Status + validity only' : effectiveVerification.reason ?? 'Verification failed',
+      tokenStatus: effectiveVerification.valid
+        ? 'valid'
+        : effectiveVerification.reason === 'expired'
+          ? 'expired'
+          : effectiveVerification.reason === 'account_locked'
+            ? 'blocked'
+            : 'invalid',
+      lockState: isBlockedByLock ? 'locked' : 'unlocked',
+      initiatedBy: 'system'
+    });
+  }, [effectiveVerification, isBlockedByLock, token]);
 
   const isValid = Boolean(effectiveVerification?.valid);
 

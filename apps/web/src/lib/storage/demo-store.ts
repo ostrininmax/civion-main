@@ -14,6 +14,7 @@ import type {
   SecurityLockHistoryEvent,
   SecurityLockType,
   ServiceRequest,
+  ShareLink,
   ShareDuration,
   ShareFieldKey,
   VerificationEvent
@@ -21,9 +22,11 @@ import type {
 import { createInitialDemoState } from '../mockData/demo-seed';
 import { SERVICE_DEFINITIONS } from '../mockData/definitions';
 
-const STORAGE_KEY = 'cyprus-services.demo-state.v4';
+const STORAGE_KEY = 'cyprus-services.demo-state.v5';
 const STORE_EVENT = 'cyprus-services:demo-state-updated';
 const DEFAULT_SECURITY_PIN = '2580';
+const LOCK_DURATION_1H_MS = 60 * 60 * 1000;
+const LOCK_DURATION_24H_MS = 24 * 60 * 60 * 1000;
 
 type StoreListener = () => void;
 
@@ -98,29 +101,136 @@ function defaultDeviceSessions(nowIso: string): DeviceSession[] {
   return [
     {
       id: 'sess_web_primary',
-      channel: 'web',
+      deviceName: 'MacBook Pro (Chrome)',
+      deviceType: 'laptop',
       location: 'Nicosia, Cyprus',
-      device: 'Chrome on macOS',
+      ipMasked: '85.129.*.*',
       lastSeenAt: nowIso,
-      active: true
+      addedAt: new Date(Date.now() - LOCK_DURATION_24H_MS * 16).toISOString(),
+      isCurrent: true,
+      isTrusted: true,
+      status: 'current'
     },
     {
       id: 'sess_mobile',
-      channel: 'mobile',
+      deviceName: 'iPhone 15 Pro (Safari)',
+      deviceType: 'phone',
       location: 'Larnaca, Cyprus',
-      device: 'Safari on iOS',
+      ipMasked: '92.63.*.*',
       lastSeenAt: nowIso,
-      active: true
+      addedAt: new Date(Date.now() - LOCK_DURATION_24H_MS * 24).toISOString(),
+      isCurrent: false,
+      isTrusted: true,
+      status: 'trusted'
     },
     {
-      id: 'sess_tablet',
-      channel: 'tablet',
-      location: 'Limassol, Cyprus',
-      device: 'iPadOS',
-      lastSeenAt: nowIso,
-      active: false
+      id: 'sess_suspicious',
+      deviceName: 'Unknown Android Device',
+      deviceType: 'phone',
+      location: 'Cairo, Egypt',
+      ipMasked: '41.32.*.*',
+      lastSeenAt: new Date(Date.now() - LOCK_DURATION_24H_MS * 10).toISOString(),
+      addedAt: new Date(Date.now() - LOCK_DURATION_24H_MS * 10).toISOString(),
+      isCurrent: false,
+      isTrusted: false,
+      status: 'suspicious'
     }
   ];
+}
+
+function inferDeviceTypeFromLegacy(value: unknown): DeviceSession['deviceType'] {
+  if (value === 'phone' || value === 'laptop' || value === 'tablet') return value;
+  if (value === 'mobile') return 'phone';
+  if (value === 'web') return 'laptop';
+  if (value === 'tablet') return 'tablet';
+  return 'laptop';
+}
+
+function normalizeSession(candidate: unknown, fallbackIndex: number, fallbackNowIso: string): DeviceSession {
+  const raw = candidate && typeof candidate === 'object' ? (candidate as Partial<DeviceSession> & Record<string, unknown>) : {};
+  const legacyChannel = raw.channel;
+  const deviceType = inferDeviceTypeFromLegacy(raw.deviceType ?? legacyChannel);
+  const fallbackName = deviceType === 'phone' ? 'Mobile Device' : deviceType === 'tablet' ? 'Tablet Device' : 'Desktop Browser';
+  const isCurrent = typeof raw.isCurrent === 'boolean' ? raw.isCurrent : Boolean(raw.active && fallbackIndex === 0);
+  const isTrusted = typeof raw.isTrusted === 'boolean' ? raw.isTrusted : Boolean(raw.active);
+
+  let status: DeviceSession['status'];
+  if (raw.status === 'current' || raw.status === 'trusted' || raw.status === 'new' || raw.status === 'suspicious') {
+    status = raw.status;
+  } else if (isCurrent) {
+    status = 'current';
+  } else if (isTrusted) {
+    status = 'trusted';
+  } else {
+    status = 'new';
+  }
+
+  return {
+    id: typeof raw.id === 'string' && raw.id ? raw.id : `sess_${fallbackIndex}`,
+    deviceName:
+      (typeof raw.deviceName === 'string' && raw.deviceName) ||
+      (typeof raw.device === 'string' && raw.device) ||
+      fallbackName,
+    deviceType,
+    location: typeof raw.location === 'string' && raw.location ? raw.location : 'Unknown location',
+    ipMasked: typeof raw.ipMasked === 'string' ? raw.ipMasked : undefined,
+    lastSeenAt: typeof raw.lastSeenAt === 'string' && raw.lastSeenAt ? raw.lastSeenAt : fallbackNowIso,
+    addedAt: typeof raw.addedAt === 'string' && raw.addedAt ? raw.addedAt : fallbackNowIso,
+    isCurrent,
+    isTrusted,
+    status
+  };
+}
+
+function fieldsToScope(fields: ShareFieldKey[]) {
+  return fields.map((field) => {
+    if (field === 'document_type') return 'document_type';
+    return field;
+  });
+}
+
+function shareStatus(expiresAt: string, revoked: boolean): ShareLink['status'] {
+  if (revoked) return 'revoked';
+  if (new Date(expiresAt).getTime() <= Date.now()) return 'expired';
+  return 'active';
+}
+
+function ensureShareLinksFromDocumentMeta(state: DemoState) {
+  const nextById = new Map<string, ShareLink>();
+
+  for (const link of state.accountSecurity.shareLinks) {
+    nextById.set(link.id, {
+      ...link,
+      status:
+        link.status === 'revoked'
+          ? 'revoked'
+          : new Date(link.expiresAt).getTime() <= Date.now()
+            ? 'expired'
+            : link.status ?? 'active'
+    });
+  }
+
+  for (const [documentId, meta] of Object.entries(state.documentMeta)) {
+    const docTitle = state.documents.find((item) => item.id === documentId)?.title;
+    for (const share of meta.shares) {
+      const current = nextById.get(share.id);
+      nextById.set(share.id, {
+        id: share.id,
+        targetType: current?.targetType ?? 'document',
+        targetId: documentId,
+        targetTitle: current?.targetTitle ?? docTitle,
+        createdAt: share.createdAt,
+        expiresAt: share.expiresAt,
+        scope: current?.scope ?? fieldsToScope(share.fields),
+        status: shareStatus(share.expiresAt, share.revoked),
+        link: share.link
+      });
+    }
+  }
+
+  state.accountSecurity.shareLinks = Array.from(nextById.values())
+    .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))
+    .slice(0, 120);
 }
 
 function ensureAccountSecurity(state: DemoState) {
@@ -131,10 +241,13 @@ function ensureAccountSecurity(state: DemoState) {
     lockedAt: null,
     lockDuration: undefined,
     lockedUntil: undefined,
+    lockReason: undefined,
+    pinConfigured: true,
     compromisedDocuments: [],
     lockHistory: [],
     failedVerificationAttempts: [],
     deviceSessions: defaultDeviceSessions(nowIso),
+    shareLinks: [],
     unlockPin: DEFAULT_SECURITY_PIN,
     lastLockAnimationAt: undefined
   };
@@ -148,15 +261,34 @@ function ensureAccountSecurity(state: DemoState) {
   state.accountSecurity = {
     ...fallback,
     ...current,
+    lockReason: typeof current.lockReason === 'string' ? current.lockReason : undefined,
+    pinConfigured:
+      typeof current.pinConfigured === 'boolean'
+        ? current.pinConfigured
+        : typeof current.unlockPin === 'string' && current.unlockPin.trim().length >= 4,
     compromisedDocuments: Array.isArray(current.compromisedDocuments) ? current.compromisedDocuments : [],
     lockHistory: Array.isArray(current.lockHistory) ? current.lockHistory : [],
     failedVerificationAttempts: Array.isArray(current.failedVerificationAttempts)
       ? current.failedVerificationAttempts
       : [],
     deviceSessions: Array.isArray(current.deviceSessions) && current.deviceSessions.length > 0
-      ? current.deviceSessions
-      : fallback.deviceSessions
+      ? current.deviceSessions.map((session, index) => normalizeSession(session, index, nowIso))
+      : fallback.deviceSessions,
+    shareLinks:
+      Array.isArray(current.shareLinks) && current.shareLinks.length > 0
+        ? current.shareLinks.map((link) => ({
+            ...link,
+            status:
+              link.status === 'revoked'
+                ? 'revoked'
+                : new Date(link.expiresAt).getTime() <= Date.now()
+                  ? 'expired'
+                  : link.status ?? 'active'
+          }))
+        : []
   };
+
+  ensureShareLinksFromDocumentMeta(state);
 }
 
 function normalizeState(candidate: Partial<DemoState> | null | undefined): DemoState {
@@ -288,9 +420,45 @@ function englishLockType(lockType: SecurityLockType) {
 }
 
 function lockDurationToMs(duration: '1h' | '24h' | 'manual') {
-  if (duration === '1h') return 60 * 60 * 1000;
-  if (duration === '24h') return 24 * 60 * 60 * 1000;
+  if (duration === '1h') return LOCK_DURATION_1H_MS;
+  if (duration === '24h') return LOCK_DURATION_24H_MS;
   return null;
+}
+
+function shareDurationToMs(duration: ShareDuration) {
+  if (duration === '10m') return 10 * 60 * 1000;
+  if (duration === '1h') return LOCK_DURATION_1H_MS;
+  return LOCK_DURATION_24H_MS;
+}
+
+function upsertShareLink(state: DemoState, shareLink: ShareLink) {
+  ensureAccountSecurity(state);
+  const existing = state.accountSecurity.shareLinks.findIndex((item) => item.id === shareLink.id);
+  const normalized: ShareLink = {
+    ...shareLink,
+    status:
+      shareLink.status === 'revoked'
+        ? 'revoked'
+        : new Date(shareLink.expiresAt).getTime() <= Date.now()
+          ? 'expired'
+          : shareLink.status ?? 'active'
+  };
+  if (existing >= 0) {
+    state.accountSecurity.shareLinks[existing] = normalized;
+  } else {
+    state.accountSecurity.shareLinks.unshift(normalized);
+  }
+  state.accountSecurity.shareLinks = state.accountSecurity.shareLinks
+    .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))
+    .slice(0, 120);
+}
+
+function markShareAsRevoked(state: DemoState, shareId: string) {
+  ensureAccountSecurity(state);
+  const shareLink = state.accountSecurity.shareLinks.find((item) => item.id === shareId);
+  if (shareLink) {
+    shareLink.status = 'revoked';
+  }
 }
 
 function pushSecurityTimeline(
@@ -375,6 +543,7 @@ export function activateEmergencyLock(input: {
     state.accountSecurity.lockedAt = nowIso;
     state.accountSecurity.lockDuration = lockDuration ?? undefined;
     state.accountSecurity.lockedUntil = lockedUntil;
+    state.accountSecurity.lockReason = input.source ?? 'Emergency lock';
     state.accountSecurity.lastLockAnimationAt = nowIso;
 
     if (input.lockType === 'hard') {
@@ -392,7 +561,13 @@ export function activateEmergencyLock(input: {
           at: nowIso,
           meta: share.link
         });
+        markShareAsRevoked(state, share.id);
       }
+    }
+
+    for (const share of state.accountSecurity.shareLinks) {
+      if (share.status !== 'active') continue;
+      share.status = 'revoked';
     }
 
     pushLockHistory(state, {
@@ -412,9 +587,12 @@ export function activateEmergencyLock(input: {
     pushVerification(state, {
       id: makeId('ve'),
       verifier: 'Citizen App',
-      result: 'invalid',
+      result: 'blocked',
       dataShown: `Emergency lock activated (${englishLockType(input.lockType)})`,
-      at: nowIso
+      at: nowIso,
+      tokenStatus: 'blocked',
+      lockState: 'locked',
+      initiatedBy: 'user'
     });
 
     pushNotification(
@@ -457,6 +635,7 @@ export function unlockEmergencyLock(input: { pin: string; usedFaceId?: boolean; 
     state.accountSecurity.lockedAt = null;
     state.accountSecurity.lockDuration = undefined;
     state.accountSecurity.lockedUntil = undefined;
+    state.accountSecurity.lockReason = undefined;
     state.accountSecurity.lastLockAnimationAt = undefined;
     if (previousLockType === 'hard') {
       state.accountSecurity.compromisedDocuments = [];
@@ -477,7 +656,10 @@ export function unlockEmergencyLock(input: { pin: string; usedFaceId?: boolean; 
       verifier: 'Citizen App',
       result: 'valid',
       dataShown: isAuto ? 'Emergency lock expired automatically' : 'Account successfully unlocked',
-      at: nowIso
+      at: nowIso,
+      tokenStatus: 'valid',
+      lockState: 'unlocked',
+      initiatedBy: isAuto ? 'system' : 'user'
     });
 
     pushNotification(
@@ -528,9 +710,12 @@ export function addFailedVerificationAttempt(input: { actor: string; reason: str
     pushVerification(state, {
       id: makeId('ve'),
       verifier: input.actor,
-      result: 'invalid',
+      result: 'blocked',
       dataShown: input.reason,
-      at: nowIso
+      at: nowIso,
+      tokenStatus: 'blocked',
+      lockState: state.accountSecurity.isLocked ? 'locked' : 'unlocked',
+      initiatedBy: 'system'
     });
     return state;
   });
@@ -855,7 +1040,10 @@ export function addVerificationEvent(input: Omit<VerificationEvent, 'id' | 'at'>
       verifier: input.verifier,
       result: input.result,
       dataShown: input.dataShown,
-      at: input.at ?? new Date().toISOString()
+      at: input.at ?? new Date().toISOString(),
+      tokenStatus: input.tokenStatus,
+      lockState: input.lockState,
+      initiatedBy: input.initiatedBy
     });
     return state;
   });
@@ -943,6 +1131,30 @@ export function addDocumentShare(input: {
       at: record.createdAt,
       meta: `Fields: ${input.fields.join(', ')}`
     });
+
+    upsertShareLink(state, {
+      id: record.id,
+      targetType: 'document',
+      targetId: input.documentId,
+      targetTitle: document?.title,
+      createdAt: record.createdAt,
+      expiresAt: record.expiresAt,
+      scope: fieldsToScope(input.fields),
+      status: 'active',
+      link: record.link
+    });
+
+    pushVerification(state, {
+      id: makeId('ve'),
+      verifier: 'Citizen App',
+      result: 'valid',
+      dataShown: `Share link created for ${document?.title ?? 'document'}`,
+      at: record.createdAt,
+      tokenStatus: 'valid',
+      lockState: state.accountSecurity.isLocked ? 'locked' : 'unlocked',
+      initiatedBy: 'user'
+    });
+
     pushNotification(
       state,
       createNotification({
@@ -965,14 +1177,41 @@ export function revokeDocumentShare(documentId: string, shareId: string) {
     if (!meta) return state;
     const share = meta.shares.find((item) => item.id === shareId);
     if (!share) return state;
+    if (share.revoked) return state;
     share.revoked = true;
+    markShareAsRevoked(state, shareId);
+
+    const document = state.documents.find((item) => item.id === documentId);
+    const nowIso = new Date().toISOString();
     pushHistory(state, documentId, {
       id: makeId('dh'),
       documentId,
       type: 'share_revoked',
-      at: new Date().toISOString(),
+      at: nowIso,
       meta: share.link
     });
+
+    pushVerification(state, {
+      id: makeId('ve'),
+      verifier: 'Citizen App',
+      result: 'valid',
+      dataShown: `Share link revoked for ${document?.title ?? 'document'}`,
+      at: nowIso,
+      tokenStatus: 'blocked',
+      lockState: state.accountSecurity.isLocked ? 'locked' : 'unlocked',
+      initiatedBy: 'user'
+    });
+
+    pushNotification(
+      state,
+      createNotification({
+        type: 'security',
+        title: 'Share link revoked',
+        body: 'Selected proof link was revoked successfully.',
+        ctaLabel: 'Open security',
+        ctaHref: '/security'
+      })
+    );
     return state;
   });
 }
@@ -986,6 +1225,426 @@ export function addDocumentRenewalHistory(documentId: string, note: string) {
       at: new Date().toISOString(),
       meta: note
     });
+    return state;
+  });
+}
+
+export function createSecurityShareLink(input: {
+  targetType: ShareLink['targetType'];
+  targetId: string;
+  targetTitle?: string;
+  duration: ShareDuration;
+  scope: string[];
+  link?: string;
+}) {
+  const current = getDemoState();
+  ensureAccountSecurity(current);
+  if (current.accountSecurity.isLocked) return null;
+
+  const now = new Date();
+  const createdAt = now.toISOString();
+  const expiresAt = new Date(now.getTime() + shareDurationToMs(input.duration)).toISOString();
+  const shareLink: ShareLink = {
+    id: makeId('share'),
+    targetType: input.targetType,
+    targetId: input.targetId,
+    targetTitle: input.targetTitle,
+    createdAt,
+    expiresAt,
+    scope: input.scope,
+    status: 'active',
+    link: input.link ?? `${typeof window !== 'undefined' ? window.location.origin : 'https://demo.civic.local'}/verify?token=demo`
+  };
+
+  updateDemoState((state) => {
+    ensureAccountSecurity(state);
+    upsertShareLink(state, shareLink);
+
+    pushVerification(state, {
+      id: makeId('ve'),
+      verifier: 'Citizen App',
+      result: 'valid',
+      dataShown: `Share link created (${input.targetType})`,
+      at: createdAt,
+      tokenStatus: 'valid',
+      lockState: state.accountSecurity.isLocked ? 'locked' : 'unlocked',
+      initiatedBy: 'user'
+    });
+
+    pushNotification(
+      state,
+      createNotification({
+        type: 'security',
+        title: 'Share link created',
+        body: `${input.targetTitle ?? 'Proof'} can now be verified until ${new Date(expiresAt).toLocaleTimeString()}.`,
+        ctaLabel: 'Open security',
+        ctaHref: '/security'
+      })
+    );
+    return state;
+  });
+
+  return shareLink;
+}
+
+export function revokeShareLinkById(shareId: string) {
+  let changed = false;
+  updateDemoState((state) => {
+    ensureAccountSecurity(state);
+    const shareLink = state.accountSecurity.shareLinks.find((item) => item.id === shareId);
+    if (!shareLink || shareLink.status === 'revoked') return state;
+
+    shareLink.status = 'revoked';
+    changed = true;
+
+    if (shareLink.targetType === 'document') {
+      const meta = state.documentMeta[shareLink.targetId];
+      const docShare = meta?.shares.find((item) => item.id === shareId);
+      if (docShare) {
+        docShare.revoked = true;
+        pushHistory(state, shareLink.targetId, {
+          id: makeId('dh'),
+          documentId: shareLink.targetId,
+          type: 'share_revoked',
+          at: new Date().toISOString(),
+          meta: docShare.link
+        });
+      }
+    }
+
+    pushVerification(state, {
+      id: makeId('ve'),
+      verifier: 'Citizen App',
+      result: 'valid',
+      dataShown: `Share link revoked (${shareLink.targetTitle ?? shareLink.targetType})`,
+      at: new Date().toISOString(),
+      tokenStatus: 'blocked',
+      lockState: state.accountSecurity.isLocked ? 'locked' : 'unlocked',
+      initiatedBy: 'user'
+    });
+
+    pushNotification(
+      state,
+      createNotification({
+        type: 'security',
+        title: 'Share link revoked',
+        body: 'Selected proof link was revoked successfully.',
+        ctaLabel: 'Open security',
+        ctaHref: '/security'
+      })
+    );
+
+    pushSecurityTimeline(state, 'Share link revoked', 'in_review');
+
+    return state;
+  });
+  return changed;
+}
+
+export function revokeAllActiveShareLinks() {
+  let revokedCount = 0;
+  updateDemoState((state) => {
+    ensureAccountSecurity(state);
+    for (const share of state.accountSecurity.shareLinks) {
+      if (share.status !== 'active') continue;
+      share.status = 'revoked';
+      revokedCount += 1;
+      if (share.targetType === 'document') {
+        const meta = state.documentMeta[share.targetId];
+        const docShare = meta?.shares.find((item) => item.id === share.id);
+        if (docShare && !docShare.revoked) {
+          docShare.revoked = true;
+          pushHistory(state, share.targetId, {
+            id: makeId('dh'),
+            documentId: share.targetId,
+            type: 'share_revoked',
+            at: new Date().toISOString(),
+            meta: docShare.link
+          });
+        }
+      }
+    }
+
+    if (revokedCount > 0) {
+      pushVerification(state, {
+        id: makeId('ve'),
+        verifier: 'Citizen App',
+        result: 'valid',
+        dataShown: `Revoked ${revokedCount} active share links`,
+        at: new Date().toISOString(),
+        tokenStatus: 'blocked',
+        lockState: state.accountSecurity.isLocked ? 'locked' : 'unlocked',
+        initiatedBy: 'user'
+      });
+
+      pushNotification(
+        state,
+        createNotification({
+          type: 'security',
+          title: 'All active links revoked',
+          body: `${revokedCount} proof links were revoked.`,
+          ctaLabel: 'Open security',
+          ctaHref: '/security'
+        })
+      );
+
+      pushSecurityTimeline(state, 'All active proof links revoked', 'in_review');
+    }
+    return state;
+  });
+  return revokedCount;
+}
+
+export function extendShareLinkDuration(shareId: string, duration: ShareDuration) {
+  let updated = false;
+  updateDemoState((state) => {
+    ensureAccountSecurity(state);
+    const share = state.accountSecurity.shareLinks.find((item) => item.id === shareId);
+    if (!share || share.status !== 'active') return state;
+    share.expiresAt = new Date(Date.now() + shareDurationToMs(duration)).toISOString();
+    updated = true;
+
+    if (share.targetType === 'document') {
+      const docShare = state.documentMeta[share.targetId]?.shares.find((item) => item.id === shareId);
+      if (docShare) {
+        docShare.expiresAt = share.expiresAt;
+      }
+    }
+
+    pushVerification(state, {
+      id: makeId('ve'),
+      verifier: 'Citizen App',
+      result: 'valid',
+      dataShown: `Share link extended (${share.targetTitle ?? share.targetType})`,
+      at: new Date().toISOString(),
+      tokenStatus: 'valid',
+      lockState: state.accountSecurity.isLocked ? 'locked' : 'unlocked',
+      initiatedBy: 'user'
+    });
+    return state;
+  });
+  return updated;
+}
+
+export function trustDeviceSession(sessionId: string) {
+  let changed = false;
+  updateDemoState((state) => {
+    ensureAccountSecurity(state);
+    const session = state.accountSecurity.deviceSessions.find((item) => item.id === sessionId);
+    if (!session) return state;
+    session.isTrusted = true;
+    if (session.status !== 'current') session.status = 'trusted';
+    changed = true;
+
+    pushVerification(state, {
+      id: makeId('ve'),
+      verifier: 'Citizen App',
+      result: 'valid',
+      dataShown: `Device trusted: ${session.deviceName}`,
+      at: new Date().toISOString(),
+      tokenStatus: 'valid',
+      lockState: state.accountSecurity.isLocked ? 'locked' : 'unlocked',
+      initiatedBy: 'user'
+    });
+    return state;
+  });
+  return changed;
+}
+
+export function removeTrustedDevice(sessionId: string) {
+  let changed = false;
+  updateDemoState((state) => {
+    ensureAccountSecurity(state);
+    const session = state.accountSecurity.deviceSessions.find((item) => item.id === sessionId);
+    if (!session) return state;
+    session.isTrusted = false;
+    if (!session.isCurrent && session.status !== 'suspicious') {
+      session.status = 'new';
+    }
+    changed = true;
+
+    pushVerification(state, {
+      id: makeId('ve'),
+      verifier: 'Citizen App',
+      result: 'valid',
+      dataShown: `Device trust removed: ${session.deviceName}`,
+      at: new Date().toISOString(),
+      tokenStatus: 'valid',
+      lockState: state.accountSecurity.isLocked ? 'locked' : 'unlocked',
+      initiatedBy: 'user'
+    });
+    return state;
+  });
+  return changed;
+}
+
+export function renameDeviceSession(sessionId: string, deviceName: string) {
+  const trimmed = deviceName.trim();
+  if (trimmed.length < 2) return false;
+  let changed = false;
+  updateDemoState((state) => {
+    ensureAccountSecurity(state);
+    const session = state.accountSecurity.deviceSessions.find((item) => item.id === sessionId);
+    if (!session) return state;
+    session.deviceName = trimmed;
+    changed = true;
+    return state;
+  });
+  return changed;
+}
+
+export function signOutDeviceSession(sessionId: string) {
+  let changed = false;
+  updateDemoState((state) => {
+    ensureAccountSecurity(state);
+    const session = state.accountSecurity.deviceSessions.find((item) => item.id === sessionId);
+    if (!session || session.isCurrent) return state;
+    session.isTrusted = false;
+    session.status = session.status === 'suspicious' ? 'suspicious' : 'new';
+    session.lastSeenAt = new Date().toISOString();
+    changed = true;
+
+    pushNotification(
+      state,
+      createNotification({
+        type: 'security',
+        title: 'Session signed out',
+        body: `${session.deviceName} was signed out.`,
+        ctaLabel: 'Open security',
+        ctaHref: '/security'
+      })
+    );
+    pushSecurityTimeline(state, 'Session signed out', 'in_review');
+
+    pushVerification(state, {
+      id: makeId('ve'),
+      verifier: 'Citizen App',
+      result: 'valid',
+      dataShown: `Session signed out: ${session.deviceName}`,
+      at: new Date().toISOString(),
+      tokenStatus: 'blocked',
+      lockState: state.accountSecurity.isLocked ? 'locked' : 'unlocked',
+      initiatedBy: 'user'
+    });
+    return state;
+  });
+  return changed;
+}
+
+export function simulateSuspiciousLogin() {
+  const nowIso = new Date().toISOString();
+  updateDemoState((state) => {
+    ensureAccountSecurity(state);
+    state.accountSecurity.deviceSessions.unshift({
+      id: makeId('sess'),
+      deviceName: 'Unknown Browser Session',
+      deviceType: 'laptop',
+      location: 'Cairo, Egypt',
+      ipMasked: '41.33.*.*',
+      lastSeenAt: nowIso,
+      addedAt: nowIso,
+      isCurrent: false,
+      isTrusted: false,
+      status: 'suspicious'
+    });
+    state.accountSecurity.deviceSessions = state.accountSecurity.deviceSessions.slice(0, 30);
+
+    pushFailedVerificationAttempt(state, {
+      id: makeId('fva'),
+      actor: 'Unknown verifier',
+      reason: 'Untrusted login detected',
+      at: nowIso
+    });
+
+    pushNotification(
+      state,
+      createNotification({
+        type: 'security',
+        title: 'Suspicious sign-in detected',
+        body: 'New login from Cairo, Egypt needs review.',
+        ctaLabel: 'Open security',
+        ctaHref: '/security'
+      })
+    );
+
+    pushSecurityTimeline(state, 'Suspicious sign-in detected', 'in_review');
+    return state;
+  });
+}
+
+export function simulateUnauthorizedVerificationAttempt() {
+  const nowIso = new Date().toISOString();
+  updateDemoState((state) => {
+    ensureAccountSecurity(state);
+    pushFailedVerificationAttempt(state, {
+      id: makeId('fva'),
+      actor: 'Unknown verifier',
+      reason: 'Unauthorized verification attempt',
+      at: nowIso
+    });
+    pushVerification(state, {
+      id: makeId('ve'),
+      verifier: 'Unknown verifier',
+      result: 'blocked',
+      dataShown: 'Unauthorized verification attempt',
+      at: nowIso,
+      tokenStatus: 'blocked',
+      lockState: state.accountSecurity.isLocked ? 'locked' : 'unlocked',
+      initiatedBy: 'system'
+    });
+    pushNotification(
+      state,
+      createNotification({
+        type: 'security',
+        title: 'Unauthorized verification blocked',
+        body: 'Verification request was blocked automatically.',
+        ctaLabel: 'Open security',
+        ctaHref: '/security'
+      })
+    );
+    pushSecurityTimeline(state, 'Unauthorized verification blocked', 'in_review');
+    return state;
+  });
+}
+
+export function simulateShareLinkLeak() {
+  const state = getDemoState();
+  const target = state.documents.find((item) => item.status === 'active') ?? state.documents[0];
+  if (!target) return null;
+
+  return createSecurityShareLink({
+    targetType: 'document',
+    targetId: target.id,
+    targetTitle: target.title,
+    duration: '24h',
+    scope: ['status', 'validity'],
+    link: `${typeof window !== 'undefined' ? window.location.origin : 'https://demo.civic.local'}/proof/leak/${makeId('lk')}`
+  });
+}
+
+export function resetSecurityEvents() {
+  updateDemoState((state) => {
+    ensureAccountSecurity(state);
+    state.accountSecurity.failedVerificationAttempts = [];
+    state.accountSecurity.lockHistory = [];
+    state.accountSecurity.isLocked = false;
+    state.accountSecurity.lockedAt = null;
+    state.accountSecurity.lockedUntil = undefined;
+    state.accountSecurity.lockDuration = undefined;
+    state.accountSecurity.lockReason = undefined;
+    state.accountSecurity.lockType = 'soft';
+    state.accountSecurity.compromisedDocuments = [];
+    state.accountSecurity.lastLockAnimationAt = undefined;
+    state.accountSecurity.deviceSessions = state.accountSecurity.deviceSessions.filter((session) => session.status !== 'suspicious');
+    state.accountSecurity.shareLinks = state.accountSecurity.shareLinks.map((share) =>
+      share.status === 'active' ? { ...share, status: 'revoked' } : share
+    );
+    for (const meta of Object.values(state.documentMeta)) {
+      for (const share of meta.shares) {
+        share.revoked = true;
+      }
+    }
+    pushSecurityTimeline(state, 'Security signals reset', 'in_review');
     return state;
   });
 }
