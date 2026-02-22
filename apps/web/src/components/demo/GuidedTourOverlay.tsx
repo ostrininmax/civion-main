@@ -41,6 +41,16 @@ function overlapArea(rectA: RectLike, rectB: RectLike) {
   );
 }
 
+function hasRectChanged(next: RectLike, prev: RectLike | null) {
+  if (!prev) return true;
+  return (
+    Math.abs(next.top - prev.top) > 0.5 ||
+    Math.abs(next.left - prev.left) > 0.5 ||
+    Math.abs(next.width - prev.width) > 0.5 ||
+    Math.abs(next.height - prev.height) > 0.5
+  );
+}
+
 function getViewportMetrics(): ViewportMetrics {
   if (typeof window === 'undefined') {
     return {
@@ -101,11 +111,12 @@ export function GuidedTourOverlay() {
   const steps = scenario?.steps ?? [];
   const stepIndex = clamp(runtime.tour.stepIndex, 0, Math.max(steps.length - 1, 0));
   const step = steps[stepIndex] ?? null;
+  const normalizedRuntimeLocale = normalizeLocale(locale);
   const textLocale = useMemo<LocaleCode>(() => {
     if (!runtime.tour.active) return appLocale;
     if (step?.id === 'tour-language') return 'en';
-    return normalizeLocale(appLocale);
-  }, [appLocale, runtime.tour.active, step?.id]);
+    return normalizedRuntimeLocale;
+  }, [appLocale, normalizedRuntimeLocale, runtime.tour.active, step?.id]);
   const tt = (key: string) => translate(textLocale, key);
 
   useEffect(() => {
@@ -195,17 +206,33 @@ export function GuidedTourOverlay() {
 
     let cancelled = false;
     let timer: ReturnType<typeof setTimeout> | null = null;
+    let rafId: number | null = null;
     let currentTarget: HTMLElement | null = null;
+    let resizeObserver: ResizeObserver | null = null;
+    let lastRect: RectLike | null = null;
 
     const refreshRect = () => {
       if (!currentTarget) return;
       const rect = currentTarget.getBoundingClientRect();
-      setTargetRect({
+      const nextRect = {
         top: rect.top,
         left: rect.left,
         width: rect.width,
         height: rect.height
-      });
+      };
+      if (hasRectChanged(nextRect, lastRect)) {
+        lastRect = nextRect;
+        setTargetRect(nextRect);
+      }
+    };
+
+    const startTracking = () => {
+      const track = () => {
+        if (cancelled) return;
+        refreshRect();
+        rafId = window.requestAnimationFrame(track);
+      };
+      rafId = window.requestAnimationFrame(track);
     };
 
     const attachTarget = (element: HTMLElement) => {
@@ -221,11 +248,32 @@ export function GuidedTourOverlay() {
       window.setTimeout(refreshRect, 60);
       window.addEventListener('scroll', refreshRect, true);
       window.addEventListener('resize', refreshRect);
+      window.addEventListener('orientationchange', refreshRect);
+      window.visualViewport?.addEventListener('resize', refreshRect);
+      window.visualViewport?.addEventListener('scroll', refreshRect);
+
+      if (typeof ResizeObserver !== 'undefined') {
+        resizeObserver = new ResizeObserver(() => {
+          refreshRect();
+        });
+        resizeObserver.observe(element);
+      }
+
+      startTracking();
     };
 
     const detachListeners = () => {
       window.removeEventListener('scroll', refreshRect, true);
       window.removeEventListener('resize', refreshRect);
+      window.removeEventListener('orientationchange', refreshRect);
+      window.visualViewport?.removeEventListener('resize', refreshRect);
+      window.visualViewport?.removeEventListener('scroll', refreshRect);
+      if (rafId !== null) {
+        window.cancelAnimationFrame(rafId);
+        rafId = null;
+      }
+      resizeObserver?.disconnect();
+      resizeObserver = null;
     };
 
     let attempts = 0;
@@ -264,48 +312,28 @@ export function GuidedTourOverlay() {
   const spotlightRect = useMemo(() => {
     if (!targetRect) return null;
     const languageStep = step?.id === 'tour-language';
-    const desktopPadding = languageStep ? 4 : 8;
-    const mobilePadding = languageStep ? 6 : 18;
+    const padding = languageStep ? (mobileViewport ? 2 : 3) : mobileViewport ? 6 : 8;
+    const minTop = viewport.offsetTop + 6;
+    const minLeft = viewport.offsetLeft + 6;
+    const maxWidth = Math.max(60, viewportWidth - 12);
+    const maxHeight = Math.max(44, viewportHeight - 12);
+    const width = Math.min(targetRect.width + padding * 2, maxWidth);
+    const height = Math.min(targetRect.height + padding * 2, maxHeight);
+    const maxTop = viewport.offsetTop + viewportHeight - height - 6;
+    const maxLeft = viewport.offsetLeft + viewportWidth - width - 6;
+    const rawTop = targetRect.top - padding;
+    const rawLeft = targetRect.left - padding;
 
-    if (!mobileViewport) {
-      const maxWidth = Math.max(140, Math.round(viewportWidth * 0.9));
-      const maxHeight = Math.max(90, Math.round(viewportHeight * 0.62));
-      const width = Math.min(targetRect.width + desktopPadding * 2, maxWidth);
-      const height = Math.min(targetRect.height + desktopPadding * 2, maxHeight);
-      const minTop = viewport.offsetTop + 8;
-      const maxTop = viewport.offsetTop + viewportHeight - height - 8;
-      const minLeft = viewport.offsetLeft + 8;
-      const maxLeft = viewport.offsetLeft + viewportWidth - width - 8;
-      const centeredTop = targetRect.top + targetRect.height / 2 - height / 2;
-      const centeredLeft = targetRect.left + targetRect.width / 2 - width / 2;
-      return {
-        top: clamp(centeredTop, minTop, Math.max(minTop, maxTop)),
-        left: clamp(centeredLeft, minLeft, Math.max(minLeft, maxLeft)),
-        width,
-        height
-      };
-    }
-
-    const maxWidth = Math.max(84, viewportWidth - 16);
-    const maxHeight = Math.max(72, Math.round(viewportHeight * 0.46));
-    const width = clamp(targetRect.width + mobilePadding, Math.min(120, maxWidth), maxWidth);
-    const height = clamp(targetRect.height + mobilePadding, Math.min(58, maxHeight), maxHeight);
-    const minTop = viewport.offsetTop + 8;
-    const maxTop = viewport.offsetTop + viewportHeight - height - 8;
-    const minLeft = viewport.offsetLeft + 8;
-    const maxLeft = viewport.offsetLeft + viewportWidth - width - 8;
-    const centeredTop = targetRect.top + targetRect.height / 2 - height / 2;
-    const centeredLeft = targetRect.left + targetRect.width / 2 - width / 2;
     return {
-      top: clamp(centeredTop, minTop, Math.max(minTop, maxTop)),
-      left: clamp(centeredLeft, minLeft, Math.max(minLeft, maxLeft)),
+      top: clamp(rawTop, minTop, Math.max(minTop, maxTop)),
+      left: clamp(rawLeft, minLeft, Math.max(minLeft, maxLeft)),
       width,
       height
     };
   }, [mobileViewport, step?.id, targetRect, viewport.offsetLeft, viewport.offsetTop, viewportHeight, viewportWidth]);
 
-  const resolvedPopoverHeight = Math.max(164, popoverHeight);
-  const popoverWidth = mobileViewport ? Math.min(440, viewportWidth - 20) : Math.min(380, viewportWidth - 24);
+  const resolvedPopoverHeight = Math.max(156, popoverHeight);
+  const popoverWidth = mobileViewport ? Math.min(420, viewportWidth - 20) : Math.min(360, viewportWidth - 24);
   const popoverPosition = useMemo(() => {
     const horizontalPadding = mobileViewport ? 10 : 14;
     const minLeft = viewport.offsetLeft + horizontalPadding;
@@ -337,15 +365,12 @@ export function GuidedTourOverlay() {
     }
 
     if (mobileViewport) {
-      const targetMid = spotlightRect.top + spotlightRect.height / 2;
-      const viewportMid = viewport.offsetTop + viewportHeight / 2;
-      const preferBottom = targetMid < viewportMid;
-
-      const topCandidate = evaluate(minTop, minLeft, preferBottom ? 8 : 2);
-      const bottomCandidate = evaluate(maxTop, minLeft, preferBottom ? 2 : 8);
-      const middleCandidate = evaluate(viewport.offsetTop + viewportHeight / 2 - resolvedPopoverHeight / 2, minLeft, 12);
-
-      const bestMobile = [topCandidate, bottomCandidate, middleCandidate].sort((a, b) => a.score - b.score)[0];
+      const gap = 10;
+      const spaceAbove = spotlightRect.top - minTop - gap;
+      const spaceBelow = maxTop - (spotlightRect.top + spotlightRect.height) - gap;
+      const placeBottom = spaceBelow >= resolvedPopoverHeight || spaceBelow >= spaceAbove;
+      const preferredTop = placeBottom ? maxTop : minTop;
+      const bestMobile = evaluate(preferredTop, minLeft, 0);
       return { top: bestMobile.top, left: bestMobile.left };
     }
 

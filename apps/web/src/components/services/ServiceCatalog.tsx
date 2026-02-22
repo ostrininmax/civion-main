@@ -122,7 +122,12 @@ export function ServiceCatalog() {
                   <span>{tt('common.days_short', { count: item.expectedDays })}</span>
                   <span>{item.requiresPayment ? tt('services.fee', { amount: item.feeEur }) : tt('services.no_fee')}</span>
                 </div>
-                <Link href={`/services/${item.slug}`} className="wallet-action wallet-action-primary" style={{ textDecoration: 'none' }}>
+                <Link
+                  href={`/services/${item.slug}`}
+                  className="wallet-action wallet-action-primary"
+                  style={{ textDecoration: 'none' }}
+                  data-tour={item.slug === 'temporary-residence-renewal' ? 'services-start-request' : undefined}
+                >
                   {tt('services.start_request')}
                 </Link>
               </article>

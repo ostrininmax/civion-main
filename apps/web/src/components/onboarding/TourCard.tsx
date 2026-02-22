@@ -5,6 +5,7 @@ import { forwardRef } from 'react';
 export type TourCardProps = {
   title: string;
   body: string;
+  secondary?: string;
   progressLabel: string;
   nextLabel: string;
   finishLabel: string;
@@ -20,11 +21,15 @@ export type TourCardProps = {
   onNext: () => void;
   onSkip: () => void;
   onRestart: () => void;
+  onReplay: () => void;
   onGoDocuments: () => void;
   onGoCivicCard: () => void;
+  onStartService: () => void;
   onClose: () => void;
   goDocumentsLabel: string;
   openCivicCardLabel: string;
+  startServiceLabel: string;
+  replayLabel: string;
   closeLabel: string;
 };
 
@@ -54,6 +59,7 @@ export const TourCard = forwardRef<HTMLDivElement, TourCardProps>(function TourC
 
       <h3>{props.title}</h3>
       <p>{props.body}</p>
+      {props.secondary ? <p className="onboarding-tour-secondary">{props.secondary}</p> : null}
       {props.targetMissingLabel ? <p className="onboarding-tour-warning">{props.targetMissingLabel}</p> : null}
 
       <div className="onboarding-tour-actions">
@@ -93,6 +99,12 @@ export const TourCard = forwardRef<HTMLDivElement, TourCardProps>(function TourC
           </button>
           <button type="button" className="wallet-action" onClick={props.onGoCivicCard}>
             {props.openCivicCardLabel}
+          </button>
+          <button type="button" className="wallet-action" onClick={props.onStartService}>
+            {props.startServiceLabel}
+          </button>
+          <button type="button" className="wallet-action wallet-action-soft" onClick={props.onReplay}>
+            {props.replayLabel}
           </button>
           <button type="button" className="wallet-action wallet-action-soft" onClick={props.onClose}>
             {props.closeLabel}

@@ -3049,7 +3049,7 @@ a,
 .demo-tour-popover {
   position: fixed;
   z-index: 141;
-  width: min(400px, calc(100vw - 24px));
+  width: min(360px, calc(100vw - 24px));
   border-radius: 16px;
   background: #fff;
   border: 1px solid rgba(22, 35, 78, 0.18);
@@ -3061,7 +3061,7 @@ a,
 }
 
 .demo-tour-popover h3 {
-  font-size: 23px;
+  font-size: 21px;
   line-height: 1.1;
 }
 
@@ -3098,9 +3098,9 @@ a,
     width: calc(100vw - 20px);
     left: 10px !important;
     border-radius: 12px;
-    padding: 10px 11px;
-    gap: 5px;
-    max-height: min(28svh, 208px);
+    padding: 10px 12px;
+    gap: 6px;
+    max-height: min(30svh, 228px);
     overflow: auto;
   }
 
@@ -3192,6 +3192,7 @@ a,
   padding: 14px;
   display: grid;
   gap: 8px;
+  animation: onboardingCardIn 220ms ease-out;
 }
 
 .onboarding-tour-card h3 {
@@ -3202,6 +3203,13 @@ a,
 .onboarding-tour-card p {
   color: var(--ink-700);
   line-height: 1.45;
+}
+
+.onboarding-tour-secondary {
+  margin-top: -2px;
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--ink-500) !important;
 }
 
 .onboarding-tour-card-head,
@@ -3215,7 +3223,15 @@ a,
 }
 
 .onboarding-tour-cta-row {
-  padding-top: 2px;
+  padding-top: 4px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.onboarding-tour-cta-row .wallet-action {
+  width: 100%;
+  justify-content: center;
 }
 
 .onboarding-tour-warning {
@@ -3235,6 +3251,17 @@ a,
   100% {
     transform: scale(1);
     opacity: 1;
+  }
+}
+
+@keyframes onboardingCardIn {
+  0% {
+    opacity: 0;
+    transform: translateY(8px) scale(0.985);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }
 
@@ -3281,7 +3308,12 @@ a,
 
   .onboarding-tour-cta-row {
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+
+  .onboarding-tour-cta-row .wallet-action {
+    min-height: 32px;
   }
 
   .onboarding-spotlight {

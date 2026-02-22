@@ -335,7 +335,7 @@ export function CivicCardTokenPanel({
         {error ? <p className="wallet-action-error">{error}</p> : null}
       </div>
 
-      <details className="civic-details-shell" open data-tour="verifier-privacy">
+      <details className="civic-details-shell" open data-tour="privacy-minimal-data">
         <summary>{tt('civic.what_verifier_sees')}</summary>
         <div className="civic-details-grid">
           <p className="civic-details-row">

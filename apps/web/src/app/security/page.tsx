@@ -355,7 +355,7 @@ export default function SecurityPage() {
       </Section>
 
       <Section title={tt('security.verifications_title')} action={tt('common.total_count', { count: state.verificationEvents.length })}>
-        <div id="security-verifications" className="table-wrap">
+        <div id="security-verifications" className="table-wrap" data-tour="security-recent-checks">
           <table className="table">
             <thead>
               <tr>

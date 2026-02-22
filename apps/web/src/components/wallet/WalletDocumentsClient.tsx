@@ -560,7 +560,7 @@ export function WalletDocumentsClient({
                 <article
                   className="wallet-document-card wallet-document-card-clickable"
                   key={item.id}
-                  data-tour={item.id === 'doc-residence' ? 'document-card-residence' : undefined}
+                  data-tour={item.id === 'doc-residence' ? 'document-residence-card' : undefined}
                   style={{ background: cardThemes[index % cardThemes.length] }}
                   role="button"
                   tabIndex={0}

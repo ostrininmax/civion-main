@@ -2,11 +2,12 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import type { LocaleCode } from '../../lib/models/types';
-import { onboardingTourSteps } from '../../lib/onboarding/tourSteps';
+import { getOnboardingTourVariant } from '../../lib/onboarding/tourSteps';
 import {
+  DEFAULT_ONBOARDING_VARIANT,
   ONBOARDING_COMMAND_EVENT,
   type OnboardingCommandDetail,
+  type OnboardingTourVariant,
   clearOnboardingProgress,
   createOnboardingActionContext,
   getElementRect,
@@ -124,6 +125,7 @@ export function TourOverlay() {
   const { t, locale: appLocale } = useTranslation();
 
   const [active, setActive] = useState(false);
+  const [variant, setVariant] = useState<OnboardingTourVariant>(DEFAULT_ONBOARDING_VARIANT);
   const [stepIndex, setStepIndex] = useState(0);
   const [targetRect, setTargetRect] = useState<RectLike | null>(null);
   const [targetMissing, setTargetMissing] = useState(false);
@@ -135,7 +137,8 @@ export function TourOverlay() {
   const activeTargetRef = useRef<HTMLElement | null>(null);
   const detachTargetRef = useRef<() => void>(() => undefined);
 
-  const steps = onboardingTourSteps;
+  const tourConfig = useMemo(() => getOnboardingTourVariant(variant), [variant]);
+  const steps = tourConfig.steps;
   const safeStepIndex = normalizeIndex(stepIndex, steps.length);
   const step = active ? steps[safeStepIndex] : null;
 
@@ -193,19 +196,20 @@ export function TourOverlay() {
       logOnboardingEvent({
         type: 'tour_finished',
         stepId: currentStep?.id,
-        stepIndex: safeStepIndex
+        stepIndex: safeStepIndex,
+        variant
       });
 
       if (targetHref) {
         router.push(targetHref);
       }
     },
-    [detachTarget, router, safeStepIndex, steps]
+    [detachTarget, router, safeStepIndex, steps, variant]
   );
 
   const pauseTour = useCallback(() => {
     const currentStep = steps[safeStepIndex];
-    saveOnboardingProgress(safeStepIndex);
+    saveOnboardingProgress(safeStepIndex, variant);
     setActive(false);
     setBusy(false);
     setTargetMissing(false);
@@ -214,14 +218,21 @@ export function TourOverlay() {
     logOnboardingEvent({
       type: 'tour_skipped',
       stepId: currentStep?.id,
-      stepIndex: safeStepIndex
+      stepIndex: safeStepIndex,
+      variant
     });
-  }, [detachTarget, safeStepIndex, steps]);
+  }, [detachTarget, safeStepIndex, steps, variant]);
 
   const startTour = useCallback(
-    (startAt: number, source: 'auto' | 'manual' | 'resume', resetCompleted = false) => {
-      const normalizedIndex = normalizeIndex(startAt, steps.length);
-      const currentStep = steps[normalizedIndex];
+    (
+      startAt: number,
+      source: 'auto' | 'manual' | 'resume',
+      resetCompleted = false,
+      requestedVariant: OnboardingTourVariant = DEFAULT_ONBOARDING_VARIANT
+    ) => {
+      const config = getOnboardingTourVariant(requestedVariant);
+      const normalizedIndex = normalizeIndex(startAt, config.steps.length);
+      const currentStep = config.steps[normalizedIndex];
       const context = createOnboardingActionContext();
       context.ensureDemoData();
 
@@ -232,26 +243,28 @@ export function TourOverlay() {
 
       setTargetMissing(false);
       setActive(true);
+      setVariant(config.id);
       setStepIndex(normalizedIndex);
       setBusy(false);
-      saveOnboardingProgress(normalizedIndex);
+      saveOnboardingProgress(normalizedIndex, config.id);
 
       logOnboardingEvent({
         type: 'tour_started',
         stepId: currentStep?.id,
         stepIndex: normalizedIndex,
-        source
+        source,
+        variant: config.id
       });
     },
-    [steps]
+    []
   );
 
   const handleBack = useCallback(() => {
     if (safeStepIndex <= 0) return;
     const previousIndex = safeStepIndex - 1;
     setStepIndex(previousIndex);
-    saveOnboardingProgress(previousIndex);
-  }, [safeStepIndex]);
+    saveOnboardingProgress(previousIndex, variant);
+  }, [safeStepIndex, variant]);
 
   const handleNext = useCallback(async () => {
     if (!step || busy) return;
@@ -264,7 +277,8 @@ export function TourOverlay() {
     logOnboardingEvent({
       type: 'tour_step_completed',
       stepId: step.id,
-      stepIndex: safeStepIndex
+      stepIndex: safeStepIndex,
+      variant
     });
 
     if (safeStepIndex >= steps.length - 1) {
@@ -274,8 +288,8 @@ export function TourOverlay() {
 
     const nextIndex = safeStepIndex + 1;
     setStepIndex(nextIndex);
-    saveOnboardingProgress(nextIndex);
-  }, [busy, completeTour, safeStepIndex, step, steps.length]);
+    saveOnboardingProgress(nextIndex, variant);
+  }, [busy, completeTour, safeStepIndex, step, steps.length, variant]);
 
   useEffect(() => {
     const onCommand = (event: Event) => {
@@ -283,24 +297,28 @@ export function TourOverlay() {
       if (!detail?.mode) return;
 
       if (detail.mode === 'resume') {
-        const resumeIndex = readOnboardingProgress() ?? 0;
-        startTour(resumeIndex, 'resume');
+        const progress = readOnboardingProgress();
+        if (!progress) {
+          startTour(0, 'resume', false, DEFAULT_ONBOARDING_VARIANT);
+          return;
+        }
+        startTour(progress.stepIndex, 'resume', false, progress.variant);
         return;
       }
 
       if (detail.mode === 'restart') {
-        startTour(0, 'manual', true);
+        startTour(0, 'manual', true, detail.variant ?? variant);
         return;
       }
 
-      startTour(0, 'manual', true);
+      startTour(0, 'manual', true, detail.variant ?? DEFAULT_ONBOARDING_VARIANT);
     };
 
     window.addEventListener(ONBOARDING_COMMAND_EVENT, onCommand as EventListener);
     return () => {
       window.removeEventListener(ONBOARDING_COMMAND_EVENT, onCommand as EventListener);
     };
-  }, [startTour]);
+  }, [startTour, variant]);
 
   useEffect(() => {
     if (shouldSuppressAutoOnboarding(pathname)) return;
@@ -311,7 +329,7 @@ export function TourOverlay() {
 
     if (meta.completed || meta.canResume) return;
 
-    startTour(0, 'auto');
+    startTour(0, 'auto', false, DEFAULT_ONBOARDING_VARIANT);
   }, [pathname, startTour]);
 
   useEffect(() => {
@@ -375,6 +393,10 @@ export function TourOverlay() {
       if (waitSelector) {
         await waitForSelector(waitSelector, 8000);
       }
+
+      if (cancelled || runId !== runCounterRef.current) return;
+
+      await sleep(step.pacingMs ?? 360);
 
       if (cancelled || runId !== runCounterRef.current) return;
 
@@ -458,10 +480,9 @@ export function TourOverlay() {
     return null;
   }
 
-  const stepLocale: LocaleCode = step.id === 'language-picker' ? 'en' : appLocale;
-  const tt = (key: string, fallback?: string) => translate(stepLocale, key, fallback);
+  const tt = (key: string, fallback?: string) => translate(appLocale, key, fallback);
   const tti = (key: string, vars: Record<string, string | number>, fallback?: string) =>
-    translateWithVars(stepLocale, key, vars, fallback);
+    translateWithVars(appLocale, key, vars, fallback);
 
   const progressLabel = tti('onboarding.progress', { current: safeStepIndex + 1, total: steps.length });
 
@@ -487,9 +508,11 @@ export function TourOverlay() {
         style={{ top: `${overlayPosition.top}px`, left: `${overlayPosition.left}px` }}
       >
         <TourCard
+          key={`${variant}:${step.id}`}
           ref={cardRef}
           title={tt(step.titleKey)}
           body={tt(step.bodyKey)}
+          secondary={step.secondaryKey ? tt(step.secondaryKey) : undefined}
           progressLabel={progressLabel}
           nextLabel={tt('onboarding.next')}
           finishLabel={tt('onboarding.finish')}
@@ -506,12 +529,16 @@ export function TourOverlay() {
             void handleNext();
           }}
           onSkip={pauseTour}
-          onRestart={() => startTour(0, 'manual', true)}
+          onRestart={() => startTour(0, 'manual', true, variant)}
+          onReplay={() => startTour(0, 'manual', true, variant)}
           onGoDocuments={() => completeTour('/wallet')}
           onGoCivicCard={() => completeTour('/civic-card')}
+          onStartService={() => completeTour('/services')}
           onClose={() => completeTour()}
           goDocumentsLabel={tt('onboarding.go_documents')}
           openCivicCardLabel={tt('onboarding.open_civic_card')}
+          startServiceLabel={tt('onboarding.start_service')}
+          replayLabel={tt('onboarding.replay')}
           closeLabel={tt('onboarding.close_tour')}
         />
       </div>

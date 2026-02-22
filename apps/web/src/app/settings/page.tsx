@@ -7,7 +7,7 @@ import { LanguageSwitcher } from '../../components/LanguageSwitcher';
 import { EmergencyLockControl } from '../../components/security/EmergencyLockControl';
 import { resetDemoState, setDemoMode } from '../../lib/storage/demo-store';
 import { resetDemoRuntimeState, setQaMode } from '../../lib/demo/runtime-store';
-import { dispatchOnboardingCommand, ONBOARDING_STATE_EVENT, readOnboardingMeta } from '../../lib/onboarding/tourEngine';
+import { DEFAULT_ONBOARDING_VARIANT, dispatchOnboardingCommand, ONBOARDING_STATE_EVENT, readOnboardingMeta } from '../../lib/onboarding/tourEngine';
 import { useDemoState } from '../../lib/storage/use-demo-state';
 import { useTranslation } from '../../lib/i18n/context';
 import { useDemoRuntimeState } from '../../lib/demo/use-demo-runtime';
@@ -85,8 +85,12 @@ export default function SettingsPage() {
             <p className="settings-text">{t('settings.tour_desc')}</p>
             {tourMeta.canResume ? (
               <p className="settings-text">
-                {t('settings.tour_progress', {
-                  step: (tourMeta.progressIndex ?? 0) + 1
+                {t('settings.tour_progress_variant', {
+                  step: (tourMeta.progressIndex ?? 0) + 1,
+                  variant:
+                    tourMeta.progressVariant === 'standard'
+                      ? t('onboarding.variant.standard')
+                      : t('onboarding.variant.premium')
                 })}
               </p>
             ) : null}
@@ -95,11 +99,21 @@ export default function SettingsPage() {
                 type="button"
                 className="wallet-action"
                 onClick={() => {
-                  dispatchOnboardingCommand('start');
-                  toastSuccess(t('settings.start_tour'), 'settings.start_tour');
+                  dispatchOnboardingCommand('start', 'premium');
+                  toastSuccess(t('settings.start_premium_tour'), 'settings.start_premium_tour');
                 }}
               >
-                {t('settings.start_tour')}
+                {t('settings.start_premium_tour')}
+              </button>
+              <button
+                type="button"
+                className="wallet-action wallet-action-soft"
+                onClick={() => {
+                  dispatchOnboardingCommand('start', 'standard');
+                  toastSuccess(t('settings.start_standard_tour'), 'settings.start_standard_tour');
+                }}
+              >
+                {t('settings.start_standard_tour')}
               </button>
               {tourMeta.canResume ? (
                 <button
@@ -117,7 +131,7 @@ export default function SettingsPage() {
                 type="button"
                 className="wallet-action wallet-action-soft"
                 onClick={() => {
-                  dispatchOnboardingCommand('restart');
+                  dispatchOnboardingCommand('restart', tourMeta.progressVariant ?? DEFAULT_ONBOARDING_VARIANT);
                   toastSuccess(t('settings.restart_tour'), 'settings.restart_tour');
                 }}
               >

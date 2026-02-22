@@ -102,7 +102,7 @@ export function Topbar() {
   }, [unreadCount]);
 
   return (
-    <header className="card hero-topbar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+    <header className="card hero-topbar" data-tour="dashboard-hero" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
       <div>
         {demoMode ? <span className="badge demo-header-badge">DEMO</span> : null}
         <h2 style={{ marginTop: 8, fontSize: 32, lineHeight: 1.1 }}>

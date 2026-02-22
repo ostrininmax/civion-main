@@ -70,7 +70,7 @@ export function EmergencyLockControl({ compact = false }: { compact?: boolean })
   };
 
   return (
-    <div className={compact ? 'security-lock-control security-lock-control-compact' : 'security-lock-control'}>
+    <div className={compact ? 'security-lock-control security-lock-control-compact' : 'security-lock-control'} data-tour="emergency-lock">
       {!compact ? (
         <div className="security-lock-summary">
           <p className="wallet-stat-label">{t('security.emergency_title')}</p>

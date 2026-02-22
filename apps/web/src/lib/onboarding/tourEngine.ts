@@ -10,6 +10,8 @@ export const ONBOARDING_COMMAND_EVENT = 'benefitpass:onboarding-command';
 export const ONBOARDING_STATE_EVENT = 'benefitpass:onboarding-state-changed';
 
 export type TourPlacement = 'auto' | 'top' | 'right' | 'bottom' | 'left';
+export type OnboardingTourVariant = 'premium' | 'standard';
+export const DEFAULT_ONBOARDING_VARIANT: OnboardingTourVariant = 'premium';
 
 export type OnboardingCommandMode = 'start' | 'resume' | 'restart';
 
@@ -22,10 +24,12 @@ export type OnboardingLogEvent = {
   stepId?: string;
   stepIndex?: number;
   source?: 'auto' | 'manual' | 'resume';
+  variant?: OnboardingTourVariant;
 };
 
 export type OnboardingCommandDetail = {
   mode: OnboardingCommandMode;
+  variant?: OnboardingTourVariant;
 };
 
 export type OnboardingActionContext = {
@@ -40,11 +44,18 @@ export type OnboardingStep = {
   target?: string;
   titleKey: string;
   bodyKey: string;
+  secondaryKey?: string;
   placement?: TourPlacement;
   waitForSelector?: string;
   canSkip?: boolean;
+  pacingMs?: number;
   actionBefore?: (ctx: OnboardingActionContext) => Promise<void> | void;
   actionAfter?: (ctx: OnboardingActionContext) => Promise<void> | void;
+};
+
+export type OnboardingProgressPayload = {
+  stepIndex: number;
+  variant: OnboardingTourVariant;
 };
 
 function canUseStorage() {
@@ -53,6 +64,10 @@ function canUseStorage() {
 
 function makeId(prefix: string) {
   return `${prefix}_${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function isOnboardingTourVariant(value: unknown): value is OnboardingTourVariant {
+  return value === 'premium' || value === 'standard';
 }
 
 function dispatchStateChanged() {
@@ -75,14 +90,34 @@ export function readOnboardingProgress() {
   if (!canUseStorage()) return null;
   const raw = window.localStorage.getItem(ONBOARDING_PROGRESS_KEY);
   if (!raw) return null;
-  const parsed = Number.parseInt(raw, 10);
-  if (!Number.isFinite(parsed) || parsed < 0) return null;
-  return parsed;
+
+  try {
+    const parsed = JSON.parse(raw) as Partial<OnboardingProgressPayload>;
+    if (typeof parsed?.stepIndex === 'number' && parsed.stepIndex >= 0) {
+      return {
+        stepIndex: parsed.stepIndex,
+        variant: isOnboardingTourVariant(parsed.variant) ? parsed.variant : DEFAULT_ONBOARDING_VARIANT
+      } satisfies OnboardingProgressPayload;
+    }
+  } catch {
+    // Legacy fallback below.
+  }
+
+  const legacyParsed = Number.parseInt(raw, 10);
+  if (!Number.isFinite(legacyParsed) || legacyParsed < 0) return null;
+  return {
+    stepIndex: legacyParsed,
+    variant: DEFAULT_ONBOARDING_VARIANT
+  } satisfies OnboardingProgressPayload;
 }
 
-export function saveOnboardingProgress(stepIndex: number) {
+export function saveOnboardingProgress(stepIndex: number, variant: OnboardingTourVariant = DEFAULT_ONBOARDING_VARIANT) {
   if (!canUseStorage()) return;
-  window.localStorage.setItem(ONBOARDING_PROGRESS_KEY, String(Math.max(0, stepIndex)));
+  const payload: OnboardingProgressPayload = {
+    stepIndex: Math.max(0, stepIndex),
+    variant
+  };
+  window.localStorage.setItem(ONBOARDING_PROGRESS_KEY, JSON.stringify(payload));
   dispatchStateChanged();
 }
 
@@ -106,11 +141,12 @@ export function readOnboardingEvents() {
 
 export function readOnboardingMeta() {
   const completed = readOnboardingCompleted();
-  const progressIndex = readOnboardingProgress();
+  const progress = readOnboardingProgress();
   return {
     completed,
-    progressIndex,
-    canResume: progressIndex !== null
+    progressIndex: progress?.stepIndex ?? null,
+    progressVariant: progress?.variant ?? null,
+    canResume: progress !== null
   };
 }
 
@@ -134,9 +170,9 @@ export function logOnboardingEvent(event: Omit<OnboardingLogEvent, 'id' | 'at'>)
   }
 }
 
-export function dispatchOnboardingCommand(mode: OnboardingCommandMode) {
+export function dispatchOnboardingCommand(mode: OnboardingCommandMode, variant?: OnboardingTourVariant) {
   if (typeof window === 'undefined') return;
-  window.dispatchEvent(new CustomEvent<OnboardingCommandDetail>(ONBOARDING_COMMAND_EVENT, { detail: { mode } }));
+  window.dispatchEvent(new CustomEvent<OnboardingCommandDetail>(ONBOARDING_COMMAND_EVENT, { detail: { mode, variant } }));
 }
 
 export function shouldSuppressAutoOnboarding(pathname: string) {
@@ -154,6 +190,7 @@ function clone<T>(value: T): T {
 
 export function ensureOnboardingData() {
   const seeded = createInitialDemoState();
+  const now = Date.now();
 
   updateDemoState((state) => {
     if (state.documents.length === 0) {
@@ -165,6 +202,16 @@ export function ensureOnboardingData() {
       const residence = seeded.documents.find((item) => item.id === 'doc-residence') ?? seeded.documents[0];
       if (residence) {
         state.documents.unshift(clone(residence));
+      }
+    }
+
+    const seededResidence = seeded.documents.find((item) => item.id === 'doc-residence');
+    const residence = state.documents.find((item) => item.id === 'doc-residence');
+    if (residence && seededResidence?.expiryDate) {
+      const currentExpiry = residence.expiryDate ? new Date(residence.expiryDate).getTime() : Number.NaN;
+      const fortyFiveDaysMs = 45 * 24 * 60 * 60 * 1000;
+      if (!Number.isFinite(currentExpiry) || currentExpiry - now > fortyFiveDaysMs) {
+        residence.expiryDate = seededResidence.expiryDate;
       }
     }
 
@@ -188,6 +235,22 @@ export function ensureOnboardingData() {
 
     if (state.messageThreads.length === 0) {
       state.messageThreads = seeded.messageThreads.slice(0, 2).map((item) => clone(item));
+    }
+
+    if (state.verificationEvents.length === 0) {
+      state.verificationEvents = seeded.verificationEvents.slice(0, 2).map((item) => clone(item));
+    }
+
+    if (state.accountSecurity.deviceSessions.length === 0) {
+      state.accountSecurity.deviceSessions = seeded.accountSecurity.deviceSessions.map((item) => clone(item));
+    }
+
+    if (state.accountSecurity.shareLinks.length === 0) {
+      state.accountSecurity.shareLinks = seeded.accountSecurity.shareLinks.map((item) => clone(item));
+    }
+
+    if (state.accountSecurity.lockHistory.length === 0 && seeded.accountSecurity.lockHistory.length > 0) {
+      state.accountSecurity.lockHistory = seeded.accountSecurity.lockHistory.slice(0, 2).map((item) => clone(item));
     }
 
     return state;
